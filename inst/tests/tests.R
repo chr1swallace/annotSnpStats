@@ -44,5 +44,18 @@ test_that("binding works", {
   expect_that(rbind2(as10,as10.2), throws_error())
 })
 
+## rownames
+test_that("rownames", {
+  nm <- paste("s",1:m,sep="")
+  rownames(as10.2) <- nm
+  expect_identical(rownames(as10.2@.Data), nm)
+  expect_identical(rownames(as10.2@samples), nm)
+})
           
+test_that("colnames", {
+  nm <- paste("s",1:n,sep="")
+  colnames(as10.2) <- nm
+  expect_identical(colnames(as10.2@.Data), nm)
+  expect_identical(rownames(as10.2@snps), nm)
+})
           

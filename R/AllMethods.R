@@ -39,7 +39,8 @@ setMethod("[",
           signature=c(x="aSnpMatrix", i="missing", j="ANY", drop="missing"),
           function(x, i, j) {
             new("aSnpMatrix",
-                .Data=x@.Data[,j],
+##                .Data=new("SnpMatrix", as.raw(x@.Data)[,j] ),
+                .Data=x@.Data,
                 snps=x@snps[j,],
                 samples=x@samples)})
 
@@ -73,3 +74,37 @@ setMethod("cbind2",
                 .Data=cbind2(x@.Data,y@.Data),
                 snps=rbind(x@snps[,snps.colmatch],y@snps[,snps.colmatch]),
                 samples=x@samples)})
+setReplaceMethod("rownames",
+                 signature=c(x="aSnpMatrix"),
+                 function(x, value) {
+                   if(length(value)!=nrow(x))
+                     stop("must specify rownames with the same length as nrow(x)")
+                   rownames(x@.Data) <- value
+                   rownames(x@samples) <- value
+                   new("aSnpMatrix",
+                       .Data=x@.Data,
+                       snps=x@snps,
+                       samples=x@samples)
+                 })
+setReplaceMethod("colnames",
+                 signature=c(x="aSnpMatrix"),
+                 function(x, value) {
+                   if(length(value)!=ncol(x))
+                     stop("must specify colnames with the same length as ncol(x)")
+                   colnames(x@.Data) <- value
+                   rownames(x@snps) <- value
+                   new("aSnpMatrix",
+                       .Data=x@.Data,
+                       snps=x@snps,
+                       samples=x@samples)
+                 })
+
+setMethod("switch.alleles",
+          signature=c(x="aSnpMatrix",snps="ANY"),
+          function(x, snps) {
+            x@.Data=switch.alleles(new("SnpMatrix",x@.Data), snps)
+            alleles <- x@snps[,c("allele.1","allele.2")]
+            x@snps[sw,c("allele.1","allele.2")] <- x@snps[sw,c("allele.2","allele.1")]
+            return(x)
+          })
+          
