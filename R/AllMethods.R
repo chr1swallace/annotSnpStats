@@ -39,10 +39,15 @@ setMethod("[",
           signature=c(x="aSnpMatrix", i="missing", j="ANY", drop="missing"),
           function(x, i, j) {
             new("aSnpMatrix",
-##                .Data=new("SnpMatrix", as.raw(x@.Data)[,j] ),
-                .Data=x@.Data,
+##                .Data=new("SnpMatrix", matrix(as.raw(x@.Data),nrow=nrow(x@.Data), ncol=ncol(x@.Data))[,j,drop=FALSE] ),
+                .Data=x@.Data[,j],
                 snps=x@snps[j,],
                 samples=x@samples)})
+
+## system.time( kk<-new("SnpMatrix",
+##                      matrix(as.raw(x@.Data),nrow=nrow(x@.Data), ncol=ncol(x@.Data),dimnames=dimnames(x@.Data))[,j,drop=FALSE]) )
+## system.time( kk<-x@.Data[,j,drop=FALSE] )
+
 
 ##' @rdname aSnpMatrix-methods
 ##' @aliases [,aSnpMatrix,ANY,ANY,missing-method

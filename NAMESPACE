@@ -1,3 +1,6 @@
+export(sample.match)
+export(snp.match)
 exportClasses(aSnpMatrix)
 exportMethods("[")
 import(snpStats)
+useDynLib(annotSnpStats)
