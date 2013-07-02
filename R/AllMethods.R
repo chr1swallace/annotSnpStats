@@ -30,7 +30,9 @@ setMethod("[",
             new("aSnpMatrix",
                 .Data=x@.Data[i,],
                 snps=x@snps,
-                samples=x@samples[i,])})
+                samples=x@samples[i,],
+                phenotype=x@phenotype,
+                alleles=x@alleles)})
 ##' @name [
 ##' @rdname aSnpMatrix-methods
 ##' @aliases [,aSnpMatrix,missing,ANY,missing-method
@@ -42,7 +44,9 @@ setMethod("[",
 ##                .Data=new("SnpMatrix", matrix(as.raw(x@.Data),nrow=nrow(x@.Data), ncol=ncol(x@.Data))[,j,drop=FALSE] ),
                 .Data=x@.Data[,j],
                 snps=x@snps[j,],
-                samples=x@samples)})
+                samples=x@samples,
+                phenotype=x@phenotype,
+                alleles=x@alleles)})
 
 ## system.time( kk<-new("SnpMatrix",
 ##                      matrix(as.raw(x@.Data),nrow=nrow(x@.Data), ncol=ncol(x@.Data),dimnames=dimnames(x@.Data))[,j,drop=FALSE]) )
@@ -57,7 +61,9 @@ setMethod("[",
             new("aSnpMatrix",
                 .Data=x@.Data[i,j],
                 snps=x@snps[j,],
-                samples=x@samples[i,])})
+                samples=x@samples[i,],
+                phenotype=x@phenotype,
+                alleles=x@alleles)})
 
 ##' @rdname aSnpMatrix-methods
 ##' @aliases rbind2,aSnpMatrix,aSnpMatrix
@@ -68,7 +74,9 @@ setMethod("rbind2",
             new("aSnpMatrix",
                 .Data=rbind2(x@.Data,y@.Data),
                 snps=x@snps,
-                samples=rbind(x@samples[,samples.colmatch],y@samples[,samples.colmatch]))})
+                samples=rbind(x@samples[,samples.colmatch],y@samples[,samples.colmatch]),
+                phenotype=x@phenotype,
+                alleles=x@alleles)})
 ##' @rdname aSnpMatrix-methods
 ##' @aliases cbind2,aSnpMatrix,aSnpMatrix
 setMethod("cbind2",
@@ -78,7 +86,10 @@ setMethod("cbind2",
             new("aSnpMatrix",
                 .Data=cbind2(x@.Data,y@.Data),
                 snps=rbind(x@snps[,snps.colmatch],y@snps[,snps.colmatch]),
-                samples=x@samples)})
+                samples=x@samples,
+                phenotype=x@phenotype,
+                alleles=x@alleles)})
+
 setReplaceMethod("rownames",
                  signature=c(x="aSnpMatrix"),
                  function(x, value) {
@@ -89,7 +100,9 @@ setReplaceMethod("rownames",
                    new("aSnpMatrix",
                        .Data=x@.Data,
                        snps=x@snps,
-                       samples=x@samples)
+                       samples=x@samples,
+                       phenotype=x@phenotype,
+                       alleles=x@alleles)
                  })
 setReplaceMethod("colnames",
                  signature=c(x="aSnpMatrix"),
@@ -101,15 +114,30 @@ setReplaceMethod("colnames",
                    new("aSnpMatrix",
                        .Data=x@.Data,
                        snps=x@snps,
-                       samples=x@samples)
+                       samples=x@samples,
+                       phenotype=x@phenotype,
+                       alleles=x@alleles)
                  })
-
 setMethod("switch.alleles",
           signature=c(x="aSnpMatrix",snps="ANY"),
           function(x, snps) {
             x@.Data=switch.alleles(new("SnpMatrix",x@.Data), snps)
-            alleles <- x@snps[,c("allele.1","allele.2")]
-            x@snps[sw,c("allele.1","allele.2")] <- x@snps[sw,c("allele.2","allele.1")]
+            anames <- alleles(x)
+            x@snps[snps,anames] <- x@snps[snps,rev(anames)]
             return(x)
           })
-          
+## setMethod("align.alleles",
+##           signature=c(x="aSnpMatrix",ref="aSnpMatrix"),
+##           align.alleles(x,ref))
+## setReplaceMethod("alleles",
+##           signature=c(x="aSnpMatrix"),
+##           function(x, value) {
+##             x@alleles <- value
+##             return(x)
+##           })
+## setReplaceMethod("phenotype",
+##           signature=c(x="aSnpMatrix"),
+##           function(x, value) {
+##             x@phenotype <- value
+##             return(x)
+##           })

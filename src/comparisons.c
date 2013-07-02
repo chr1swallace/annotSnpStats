@@ -57,11 +57,17 @@
 
 /* } */
 
-SEXP countdiffs(SEXP Rx, SEXP Ry, SEXP maxDiff) {
+SEXP countdiffs(SEXP Rx, SEXP Ry, SEXP maxDiff, SEXP Rtype, SEXP pBar) {
 
   int nprotect=0;
   SEXP Rdim, Rcounts;
 
+  SEXP utilsPackage, percentComplete;
+  PROTECT(utilsPackage = eval(lang2(install("getNamespace"), ScalarString(mkChar("utils"))), R_GlobalEnv));
+  PROTECT(percentComplete = allocVector(INTSXP, 1));
+  nprotect+=2;
+  int *rPercentComplete = INTEGER(percentComplete);
+ 
   PROTECT(Rdim = getAttrib(Rx, R_DimSymbol));
   nprotect++;
   int nx = INTEGER(Rdim)[0];
@@ -78,7 +84,10 @@ SEXP countdiffs(SEXP Rx, SEXP Ry, SEXP maxDiff) {
   // maximum number of mismatches allowed
   int maxdiff = INTEGER(maxDiff)[0];
    
-   // pointers to x, y
+  // type of things to count
+  int type = INTEGER(Rtype)[0];
+
+  // pointers to x, y
   unsigned char *x = RAW(Rx);
   unsigned char *y = RAW(Ry);
 
@@ -100,7 +109,7 @@ SEXP countdiffs(SEXP Rx, SEXP Ry, SEXP maxDiff) {
 	int yy=(int) y[jj];
 	if( xx!=0 && yy!=0) {
 	  nonzero++;
-	  if(xx!=yy ) {
+	  if((type==0 && xx!=yy) || (type==1 && xx==2 && yy!=2) || (type==1 && xx!=2 && yy==2)) {
 	    mismatch++;
 	    if(mismatch == maxdiff)
 	      break;
@@ -118,6 +127,8 @@ SEXP countdiffs(SEXP Rx, SEXP Ry, SEXP maxDiff) {
       counts[ij + 3*M] = nonzero;
       ij++;
     }
+   *rPercentComplete = i; //this value increments
+   eval(lang4(install("setTxtProgressBar"), pBar, percentComplete, R_NilValue), utilsPackage);
   }
 
   // trim Rcount
