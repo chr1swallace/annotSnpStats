@@ -1,61 +1,115 @@
-data(for.exercise, package="snpStats")
+data(testdata, package="snpStats")
 n <- 20
 m <- 100
 
-s10 <- snps.10[1:m,1:n]
+i1 <- 1:m
+i2 <- m+(1:m)
+j1 <- 1:n
+j2 <- n+(1:n)
+
 
 ## initialize
+rownames(Asnps) <- colnames(Autosomes)
+rownames(Xsnps) <- colnames(Xchromosome)
 
-as10 <- new("aSnpMatrix",
-                 .Data=s10,
-                 snps=snp.support[1:n,],
-                 samples=subject.support[1:m,])
-as10.2 <- new("aSnpMatrix",
-                 .Data=snps.10[1:m, n+(1:n)],
-                 snps=snp.support[n + (1:n),],
-                 samples=subject.support[1:m,])
-as10.3 <- new("aSnpMatrix",
-                 .Data=snps.10[m+(1:m), 1:n],
-                 snps=snp.support[1:n,],
-                 samples=subject.support[m+(1:m),])
+as11 <- new("aSnpMatrix",
+                 .Data=Autosomes[i1,j1],
+                 snps=Asnps[j1,,drop=FALSE],
+                 samples=subject.data[i1,])
+as12 <- new("aSnpMatrix",
+                 .Data=Autosomes[i1,j2],
+                 snps=Asnps[j2,,drop=FALSE],
+                 samples=subject.data[i1,])
+as21 <- new("aSnpMatrix",
+                 .Data=Autosomes[i2,j1],
+                 snps=Asnps[j1,,drop=FALSE],
+                 samples=subject.data[i2,])
+
+xs11 <- new("aXSnpMatrix",
+                 .Data=Xchromosome[i1,j1],
+                 snps=Xsnps[j1,,drop=FALSE],
+                 samples=subject.data[i1,])
+xs12 <- new("aXSnpMatrix",
+                 .Data=Xchromosome[i1,j2],
+                 snps=Xsnps[j2,,drop=FALSE],
+                 samples=subject.data[i1,])
+xs21 <- new("aXSnpMatrix",
+                 .Data=Xchromosome[i2,j1],
+                 snps=Xsnps[j1,,drop=FALSE],
+                 samples=subject.data[i2,])
+
+
+context("initialize")
 test_that("initialize works", {
-  expect_that(as10, is_a("aSnpMatrix"))
+  expect_that(as11, is_a("aSnpMatrix"))
+  expect_that(xs11, is_a("aXSnpMatrix"))
   expect_that(new("aSnpMatrix",
-                  .Data=s10,
-                  snps=snp.support,
-                  samples=subject.support), throws_error())
+                  .Data=as11@.Data,
+                  snps=as12@snps,
+                  samples=as11@samples), throws_error())
+  expect_that(new("aXSnpMatrix",
+                  .Data=xs11@.Data,
+                  snps=xs12@snps,
+                  samples=xs11@samples), throws_error())
   expect_that(new("aSnpMatrix",
-                  .Data=s10,
-                  snps=snp.support[1:n,],
-                  samples=subject.support[1:n,]), throws_error())
+                  .Data=as11@.Data,
+                  snps=as11@snps,
+                  samples=as21@samples), throws_error())
+  expect_that(new("aXSnpMatrix",
+                  .Data=xs11@.Data,
+                  snps=xs11@snps,
+                  samples=xs21@samples), throws_error())
 })
 
 ## subsetting
+context("subsetting")
 test_that("subsetting works", {
-  expect_that(nrow(as10[1:10,]), equals(10))
-  expect_that(ncol(as10[,1:10]), equals(10))
+  expect_that(as11[1:10,], is_a("aSnpMatrix"))
+  expect_that(xs11[1:10,], is_a("aXSnpMatrix"))
+  expect_that(nrow(as11[1:10,]), equals(10))
+  expect_that(ncol(as11[,1:10]), equals(10))
+  expect_that(nrow(xs11[1:10,]), equals(10))
+  expect_that(ncol(xs11[,1:10]), equals(10))
 })
 
 ## binding
+context("binding")
 test_that("binding works", {
-  expect_that(ncol(cbind2(as10,as10.2)), equals(n * 2))
-  expect_that(nrow(rbind2(as10,as10.3)), equals(m * 2))
-  expect_that(cbind2(as10,as10.3), throws_error())
-  expect_that(rbind2(as10,as10.2), throws_error())
+  ac <- cbind2(as11,as12)
+  ar <- rbind2(as11,as21)
+  xc <- cbind2(xs11,xs12)
+  xr <- rbind2(xs11,xs21)
+
+  expect_that(ac, is_a("aSnpMatrix"))
+  expect_that(ar, is_a("aSnpMatrix")) 
+  expect_that(xc, is_a("aXSnpMatrix"))
+  expect_that(xr, is_a("aXSnpMatrix"))
+  expect_that(ncol(ac), equals(n * 2))
+  expect_that(nrow(ar), equals(m * 2))
+  expect_that(ncol(xc), equals(n * 2))
+  expect_that(nrow(xr), equals(m * 2))
+ 
+  expect_that(cbind2(as11,as21), throws_error())
+  expect_that(rbind2(as11,as12), throws_error())
+  expect_that(cbind2(xs11,xs21), throws_error())
+  expect_that(rbind2(xs11,xs12), throws_error())
+  expect_that(cbind2(as11,as11), throws_error())
+  expect_that(cbind2(xs11,xs11), throws_error())
+  expect_that(rbind2(as11,as11), throws_error())
+  expect_that(rbind2(xs11,xs11), throws_error())
 })
 
 ## rownames
-test_that("rownames", {
+context("dimnames")
+test_that("dimnames/rownames/colnames", {
   nm <- paste("s",1:m,sep="")
-  rownames(as10.2) <- nm
-  expect_identical(rownames(as10.2@.Data), nm)
-  expect_identical(rownames(as10.2@samples), nm)
+  nn <- paste("s",1:n,sep="")
+  for(tmp in list(as11, xs11)) {
+    dimnames(tmp) <- list(nm,nn)
+    expect_identical(rownames(tmp@.Data), nm)
+    expect_identical(rownames(tmp@samples), nm)
+    expect_identical(colnames(tmp@.Data), nn)
+    expect_identical(rownames(tmp@snps), nn)
+  }
 })
-          
-test_that("colnames", {
-  nm <- paste("s",1:n,sep="")
-  colnames(as10.2) <- nm
-  expect_identical(colnames(as10.2@.Data), nm)
-  expect_identical(rownames(as10.2@snps), nm)
-})
-          
+
