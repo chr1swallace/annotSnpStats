@@ -5,5 +5,5 @@
 #' @docType package
 #' @useDynLib annotSnpStats
 #' @seealso \code{\link[snpStats:snpStats-package]{snpStats}}
-#' @import snpStats 
+#' @import snpStats
 NULL

@@ -1,6 +1,8 @@
 ##' Methods for aSnpMatrix objects
 ##'
-##' Most methods simply extend methods that already exist for \code{SnpMatrix} objects.
+##' These methods extend those that already exist for \code{matrix}
+##' and \code{SnpMatrix} objects, so that the aligned snp and sample
+##' summary data are correctly processed.
 ##'
 ##' @section Methods:
 ##' \describe{
@@ -15,6 +17,7 @@
 ##' 
 ##' @export
 ##' @docType methods
+##' @name aSnpMatrix-methods
 ##' @rdname aSnpMatrix-methods
 ##' @aliases [,aSnpMatrix,ANY,missing,missing-method
 ##' @title Methods for aSnpMatrix objects
@@ -33,8 +36,10 @@ setMethod("[",
                 samples=x@samples[i,],
                 phenotype=x@phenotype,
                 alleles=x@alleles)})
+##' @name aSnpMatrix-methods
 ##' @rdname aSnpMatrix-methods
 ##' @aliases [,aXSnpMatrix,missing,ANY,missing-method
+##' @docType methods
 setMethod("[",
           signature=c(x="aXSnpMatrix", i="ANY", j="missing", drop="missing"),
           function(x, i) {
@@ -45,7 +50,7 @@ setMethod("[",
                 phenotype=x@phenotype,
                 alleles=x@alleles,
                 diploid=x@diploid[i])})
-##' @name [
+##' @name aSnpMatrix-methods
 ##' @rdname aSnpMatrix-methods
 ##' @aliases [,aSnpMatrix,missing,ANY,missing-method
 ##' @docType methods
@@ -104,6 +109,7 @@ setMethod("[",
                 alleles=x@alleles,
                 diploid=x@diploid[i])})
 
+##' @name aSnpMatrix-methods
 ##' @rdname aSnpMatrix-methods
 ##' @aliases rbind2,aSnpMatrix,aSnpMatrix
 setMethod("rbind2",  ## bind samples
@@ -118,6 +124,7 @@ setMethod("rbind2",  ## bind samples
                 samples=rbind(x@samples[,samples.colmatch,drop=FALSE],y@samples[,samples.colmatch,drop=FALSE]),
                 phenotype=x@phenotype,
                 alleles=x@alleles)})
+##' @name aSnpMatrix-methods
 ##' @rdname aSnpMatrix-methods
 ##' @aliases rbind2,aXSnpMatrix,aXSnpMatrix
 setMethod("rbind2", ## bind samples
@@ -148,7 +155,7 @@ setMethod("cbind2", ## bind SNPs
                 samples=x@samples,
                 phenotype=x@phenotype,
                 alleles=x@alleles)})
-##' @rdname aXSnpMatrix-methods
+##' @rdname aSnpMatrix-methods
 ##' @aliases cbind2,aXSnpMatrix,aXSnpMatrix
 setMethod("cbind2", ## bind SNPs
           signature=c(x="aXSnpMatrix",y="aXSnpMatrix"),
@@ -165,7 +172,9 @@ setMethod("cbind2", ## bind SNPs
                 phenotype=x@phenotype,
                 alleles=x@alleles,
                 diploid=x@diploid)})
-
+##' @name aSnpMatrix-methods
+##' @rdname aSnpMatrix-methods
+##' @aliases rownames,aSnpMatrix
 setReplaceMethod("rownames",
                  signature=c(x="aSnpMatrix"),
                  function(x, value) {
@@ -180,6 +189,9 @@ setReplaceMethod("rownames",
                        phenotype=x@phenotype,
                        alleles=x@alleles)
                  })
+##' @name aSnpMatrix-methods
+##' @rdname aSnpMatrix-methods
+##' @aliases rownames<-,aXSnpMatrix
 setReplaceMethod("rownames",
                  signature=c(x="aXSnpMatrix"),
                  function(x, value) {
@@ -195,6 +207,9 @@ setReplaceMethod("rownames",
                        alleles=x@alleles,
                        diploid=x@diploid)
                  })
+##' @rdname aSnpMatrix-methods
+##' @aliases colnames<-,aSnpMatrix
+##' @name aSnpMatrix-methods
 setReplaceMethod("colnames",
                  signature=c(x="aSnpMatrix"),
                  function(x, value) {
@@ -209,6 +224,9 @@ setReplaceMethod("colnames",
                        phenotype=x@phenotype,
                        alleles=x@alleles)
                  })
+##' @name aSnpMatrix-methods
+##' @rdname aSnpMatrix-methods
+##' @aliases colnames<-,aXSnpMatrix
 setReplaceMethod("colnames",
                  signature=c(x="aXSnpMatrix"),
                  function(x, value) {
@@ -224,18 +242,27 @@ setReplaceMethod("colnames",
                        alleles=x@alleles,
                        diploid=x@diploid)
                  })
+##' @name aSnpMatrix-methods
+##' @rdname aSnpMatrix-methods
+##' @aliases dimnames<-,aSnpMatrix
 setReplaceMethod("dimnames",
                  signature=c(x="aSnpMatrix"),
                  function(x, value) {
                    rownames(x) <- value[[1]]
                    colnames(x) <- value[[2]]
                    return(x) })
+##' @name aSnpMatrix-methods
+##' @rdname aSnpMatrix-methods
+##' @aliases dimnames<-,aXSnpMatrix
 setReplaceMethod("dimnames",
                  signature=c(x="aXSnpMatrix"),
                  function(x, value) {
                    rownames(x) <- value[[1]]
                    colnames(x) <- value[[2]]
                    return(x) })
+##' @name aSnpMatrix-methods
+##' @rdname aSnpMatrix-methods
+##' @aliases switch.alleles,aSnpMatrix,ANY
 setMethod("switch.alleles",
           signature=c(x="aSnpMatrix",snps="ANY"),
           function(x, snps) {
@@ -244,6 +271,9 @@ setMethod("switch.alleles",
             x@snps[snps,anames] <- x@snps[snps,rev(anames)]
             return(x)
           })
+##' @name aSnpMatrix-methods
+##' @rdname aSnpMatrix-methods
+##' @aliases switch.alleles,aXSnpMatrix,ANY
 setMethod("switch.alleles",
           signature=c(x="aXSnpMatrix",snps="ANY"),
           function(x, snps) {
