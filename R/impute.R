@@ -5,6 +5,7 @@
 ##' @param bp optional vector giving bp of SNPs, of length == number of SNPs
 ##' @param strata optional strata vector for imputation within strata, length == number of samples
 ##' @param numeric flag determining class of return value, default FALSE
+##' @param ... additional parameters passed to \code{snpStats::impute.snps}
 ##' @return matrix, either numeric (if numeric=TRUE) or SnpMatrix (if numeric=FALSE)
 ##' @author Chris Wallace
 ##' @export 

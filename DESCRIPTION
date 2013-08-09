@@ -9,6 +9,8 @@ Authors@R: c(person("Chris", "Wallace", role=c("aut","cre"), email =
     "chris.wallace@cimr.cam.ac.uk"))
 Depends:
     snpStats
+Imports:
+    methods
 License: GPL
 Collate:
     'AllClasses.R'
@@ -16,3 +18,4 @@ Collate:
     'annotSnpStats-package.r'
     'snp-match.R'
     'AllGenerics.R'
+    'impute.R'

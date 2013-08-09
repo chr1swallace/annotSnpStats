@@ -6,4 +6,5 @@
 #' @useDynLib annotSnpStats
 #' @seealso \code{\link[snpStats:snpStats-package]{snpStats}}
 #' @import snpStats
+#' @import methods
 NULL

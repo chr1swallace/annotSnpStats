@@ -27,3 +27,4 @@ setGeneric("phenotype<-",
 ##            def=function(x, ref, ...) {
 ##              align.alleles(x, ref) } )
 
+setGeneric("dimnames<-")
