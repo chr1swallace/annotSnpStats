@@ -7,7 +7,7 @@
 ##' @export
 annot.plink <- function(obj) {
   new("aSnpMatrix",
-      .Data=obj@genotypes,
-      snps=obj@fam,
-      samples=obj@fam)
+      .Data=obj$genotypes,
+      snps=obj$map,
+      samples=obj$fam)
 }
