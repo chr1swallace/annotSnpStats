@@ -1,8 +1,14 @@
-setGeneric("alleles<-",
-           def=function(x, ..., value) {
-             x@alleles <- value
-             return(x)
-           })
+##' get/set allele variables in an annotSnpStats object
+##'
+##' @title alleles
+##' @param object object of class annotSnpStats
+##' @return no return value
+##' @author Chris Wallace
+##' @export
+##' @docType methods
+##' @rdname alleles-methods
+##' @aliases alleles-methods
+##' @keywords methods
 setGeneric("alleles",
            def=function(x, ..., value) {
              if(length(x@alleles))
@@ -16,7 +22,31 @@ setGeneric("alleles",
              warning("couldn't guess allele column names")
              return(NULL)
            })
+##' @param ... character vector of length 2, giving the variable names for alelles 1 and 2
+##' @export
+##' @docType methods
+##' @rdname alleles-methods
+##' @aliases alleles-methods
+##' @keywords methods
+setGeneric("alleles<-",
+           def=function(x, ..., value) {
+             x@alleles <- value
+             return(x)
+           })
 
+
+##' set phenotype variable in an annotSnpStats object
+##'
+##' @title phenotype
+##' @param object object of class annotSnpStats
+##' @param ... variable name that represents phenotype
+##' @return no return value
+##' @author Chris Wallace
+##' @export
+##' @docType methods
+##' @rdname phenotype-methods
+##' @aliases phenotype-methods
+##' @keywords methods
 setGeneric("phenotype<-",
            def=function(x, ..., value) {
              x@phenotype <- value
