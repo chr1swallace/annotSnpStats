@@ -173,7 +173,7 @@ snp.trim <- function(x, thr=c(Call.rate=">0.99", MAF=">0.03", z.HWE="<5")) {
   }
   cat("Overall\n")
   print(table(snps.ok))
-  return(x[,snps.ok])
+  return(x[,which(snps.ok)])
 }
 
 complement <- function(str) {
@@ -190,8 +190,16 @@ arev <- function(str) {
   ss <- lapply(ss, rev)
   sapply(ss, paste, collapse="/")  
 }
-
-align.alleles <- function(x,y,do.plot=TRUE) {
+##' switch alleles in x to match order in y
+##'
+##' @title align.alleles
+##' @param x  annotSnpStats object
+##' @param y  annotSnpStats object
+##' @param do.plot
+##' @export
+##' @return  new annotSnpStats object derived from x, with alleles switched to match those in y
+##' @author Chris Wallace
+align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01) {
   x.alleles <- apply(x@snps[,alleles(x)],1,paste,collapse="/")
   y.alleles <- apply(y@snps[,alleles(y)],1,paste,collapse="/")
   print(table(x.alleles, y.alleles))
@@ -208,7 +216,7 @@ align.alleles <- function(x,y,do.plot=TRUE) {
 
     rdiff <- x.cs[,"RAF"] - y.cs[,"RAF"]
     sw2 <- ifelse(abs(x.cs[,"RAF"] - y.cs[,"RAF"]) < abs(1 - x.cs[,"RAF"] - y.cs[,"RAF"]), FALSE, TRUE)
-    sw2[ abs(x.cs[,"MAF"]-0.5)<0.02 ] <- NA
+    sw2[ abs(x.cs[,"MAF"]-0.5)<mafdiff ] <- NA
     cat(sum(is.na(sw2)),"SNPs not resolvable (MAF too close to 0.5)\n")
 
     sw[ind] <- sw2
