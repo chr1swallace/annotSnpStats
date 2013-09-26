@@ -1,7 +1,7 @@
 ##' Uses snpStats' snp.imputation function
 ##'
 ##' @title Fill in missing values in aSnpMatrix object
-##' @param X aSnpMatrix object
+##' @param X SnpMatrix or aSnpMatrix object
 ##' @param bp optional vector giving bp of SNPs, of length == number of SNPs
 ##' @param strata optional strata vector for imputation within strata, length == number of samples
 ##' @param numeric flag determining class of return value, default FALSE
@@ -41,12 +41,17 @@ impute.missing <- function(X,bp=1:ncol(X),strata=NULL, numeric=FALSE, ...) {
   if(numeric) {
     return(N)
   } else {
-    return(new("aSnpMatrix",
-               .Data=new("SnpMatrix",data=round(N)+1, nrow=nrow(N), ncol=ncol(N), dimnames=dimnames(N)),
-               snps=X@snps,
-               samples=X@samples,
-               phenotype=X@phenotype,
-               alleles=X@alleles))
+    if(is(X,"aSnpMatrix")) {
+      return(new("aSnpMatrix",
+                 .Data=new("SnpMatrix",data=round(N)+1, nrow=nrow(N), ncol=ncol(N), dimnames=dimnames(N)),
+                 snps=X@snps,
+                 samples=X@samples,
+                 phenotype=X@phenotype,
+                 alleles=X@alleles))
+    } else {
+      return(new("SnpMatrix",
+                 .Data=new("SnpMatrix",data=round(N)+1, nrow=nrow(N), ncol=ncol(N), dimnames=dimnames(N))))
+    }
   }
 }
 
