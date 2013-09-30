@@ -190,12 +190,16 @@ arev <- function(str) {
   ss <- lapply(ss, rev)
   sapply(ss, paste, collapse="/")  
 }
+
 ##' switch alleles in x to match order in y
 ##'
 ##' @title align.alleles
-##' @param x  annotSnpStats object
-##' @param y  annotSnpStats object
-##' @param do.plot
+##' @param x annotSnpStats object
+##' @param y annotSnpStats object
+##' @param do.plot if TRUE (default), generate a summary plot that can be a useful visual check nothing has gone wrong.  The points should lie close to the line of equality.
+##' @param mafdiff SNPs with MAF within mafdiff of 0.5 will not be
+##' aligned automatically.  This is of concern only for T/A and C/G
+##' SNPs, which are not uniquely resolveable by allele codes.
 ##' @export
 ##' @return  new annotSnpStats object derived from x, with alleles switched to match those in y
 ##' @author Chris Wallace
