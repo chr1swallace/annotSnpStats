@@ -204,6 +204,8 @@ arev <- function(str) {
 ##' @return  new annotSnpStats object derived from x, with alleles switched to match those in y
 ##' @author Chris Wallace
 align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01) {
+  if(!identical(colnames(x), colnames(y)))
+    stop("x and y should contain the same SNPs in the same order")
   x.alleles <- apply(x@snps[,alleles(x)],1,paste,collapse="/")
   y.alleles <- apply(y@snps[,alleles(y)],1,paste,collapse="/")
   print(table(x.alleles, y.alleles))
