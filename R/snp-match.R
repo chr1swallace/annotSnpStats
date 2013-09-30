@@ -230,6 +230,7 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01) {
     x.cs <- col.summary(x)
     y.cs <- col.summary(y)
     plot(x.cs[,"RAF"], y.cs[,"RAF"],main="RAF after switching",xlab="x",ylab="y")
+    abline(0,1,col="grey20",lty=3)
   }
   
   return(x)
