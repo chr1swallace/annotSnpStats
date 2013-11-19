@@ -19,3 +19,4 @@ Collate:
     'snp-match.R'
     'AllGenerics.R'
     'impute.R'
+    'conversion.R'
