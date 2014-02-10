@@ -30,6 +30,8 @@
 setMethod("[",
           signature=c(x="aSnpMatrix", i="ANY", j="missing", drop="missing"),
           function(x, i) {
+            if(is.logical(i))
+              i <- which(i)
             new("aSnpMatrix",
                 .Data=x@.Data[i,,drop=FALSE],
                 snps=x@snps,
@@ -43,6 +45,8 @@ setMethod("[",
 setMethod("[",
           signature=c(x="aXSnpMatrix", i="ANY", j="missing", drop="missing"),
           function(x, i) {
+            if(is.logical(i))
+              i <- which(i)
             new("aXSnpMatrix",
                 .Data=x@.Data[i,,drop=FALSE],
                 snps=x@snps,
@@ -57,6 +61,8 @@ setMethod("[",
 setMethod("[",
           signature=c(x="aSnpMatrix", i="missing", j="ANY", drop="missing"),
           function(x, i, j) {
+            if(is.logical(i))
+              i <- which(i)
             new("aSnpMatrix",
 ##                .Data=new("SnpMatrix", matrix(as.raw(x@.Data),nrow=nrow(x@.Data), ncol=ncol(x@.Data))[,j,drop=FALSE] ),
                 .Data=x@.Data[,j,drop=FALSE],
@@ -71,6 +77,8 @@ setMethod("[",
 setMethod("[",
           signature=c(x="aXSnpMatrix", i="missing", j="ANY", drop="missing"),
           function(x, i, j) {
+            if(is.logical(i))
+              i <- which(i)
             new("aXSnpMatrix",
 ##                .Data=new("SnpMatrix", matrix(as.raw(x@.Data),nrow=nrow(x@.Data), ncol=ncol(x@.Data))[,j,drop=FALSE] ),
                 .Data=x@.Data[,j,drop=FALSE],
@@ -90,7 +98,9 @@ setMethod("[",
 setMethod("[",
           signature=c(x="aSnpMatrix", i="ANY", j="ANY", drop="missing"),
           function(x, i, j) {
-            new("aSnpMatrix",
+            if(is.logical(i))
+              i <- which(i)
+     new("aSnpMatrix",
                 .Data=x@.Data[i,j,drop=FALSE],
                 snps=x@snps[j,,drop=FALSE],
                 samples=x@samples[i,,drop=FALSE],
@@ -101,7 +111,9 @@ setMethod("[",
 setMethod("[",
           signature=c(x="aXSnpMatrix", i="ANY", j="ANY", drop="missing"),
           function(x, i, j) {
-            new("aXSnpMatrix",
+                if(is.logical(i))
+              i <- which(i)
+        new("aXSnpMatrix",
                 .Data=x@.Data[i,j,drop=FALSE],
                 snps=x@snps[j,],
                 samples=x@samples[i,,drop=FALSE],
@@ -306,3 +318,7 @@ setMethod("switch.alleles",
 ##             x@phenotype <- value
 ##             return(x)
 ##           })
+
+## setMethod("ld",signature=c(x="snpMatrix",y="ANY",depth="ANY",stats="ANY",symmetric="ANY"),
+##             snpStats::ld(x,y=NULL,depth=depth,stats=stats,symmetric=symmetric)
+##           )
