@@ -31,9 +31,9 @@ setMethod("[",
           signature=c(x="aSnpMatrix", i="ANY", j="missing", drop="missing"),
           function(x, i) {
             new("aSnpMatrix",
-                .Data=x@.Data[i,],
+                .Data=x@.Data[i,,drop=FALSE],
                 snps=x@snps,
-                samples=x@samples[i,],
+                samples=x@samples[i,,drop=FALSE],
                 phenotype=x@phenotype,
                 alleles=x@alleles)})
 ##' @name aSnpMatrix-methods
@@ -44,9 +44,9 @@ setMethod("[",
           signature=c(x="aXSnpMatrix", i="ANY", j="missing", drop="missing"),
           function(x, i) {
             new("aXSnpMatrix",
-                .Data=x@.Data[i,],
+                .Data=x@.Data[i,,drop=FALSE],
                 snps=x@snps,
-                samples=x@samples[i,],
+                samples=x@samples[i,,drop=FALSE],
                 phenotype=x@phenotype,
                 alleles=x@alleles,
                 diploid=x@diploid[i])})
@@ -59,7 +59,7 @@ setMethod("[",
           function(x, i, j) {
             new("aSnpMatrix",
 ##                .Data=new("SnpMatrix", matrix(as.raw(x@.Data),nrow=nrow(x@.Data), ncol=ncol(x@.Data))[,j,drop=FALSE] ),
-                .Data=x@.Data[,j],
+                .Data=x@.Data[,j,drop=FALSE],
                 snps=x@snps[j,,drop=FALSE],
                 samples=x@samples,
                 phenotype=x@phenotype,
@@ -73,7 +73,7 @@ setMethod("[",
           function(x, i, j) {
             new("aXSnpMatrix",
 ##                .Data=new("SnpMatrix", matrix(as.raw(x@.Data),nrow=nrow(x@.Data), ncol=ncol(x@.Data))[,j,drop=FALSE] ),
-                .Data=x@.Data[,j],
+                .Data=x@.Data[,j,drop=FALSE],
                 snps=x@snps[j,,drop=FALSE],
                 samples=x@samples,
                 phenotype=x@phenotype,
@@ -91,7 +91,7 @@ setMethod("[",
           signature=c(x="aSnpMatrix", i="ANY", j="ANY", drop="missing"),
           function(x, i, j) {
             new("aSnpMatrix",
-                .Data=x@.Data[i,j],
+                .Data=x@.Data[i,j,drop=FALSE],
                 snps=x@snps[j,,drop=FALSE],
                 samples=x@samples[i,,drop=FALSE],
                 phenotype=x@phenotype,
@@ -102,9 +102,9 @@ setMethod("[",
           signature=c(x="aXSnpMatrix", i="ANY", j="ANY", drop="missing"),
           function(x, i, j) {
             new("aXSnpMatrix",
-                .Data=x@.Data[i,j],
+                .Data=x@.Data[i,j,drop=FALSE],
                 snps=x@snps[j,],
-                samples=x@samples[i,],
+                samples=x@samples[i,,drop=FALSE],
                 phenotype=x@phenotype,
                 alleles=x@alleles,
                 diploid=x@diploid[i])})
@@ -119,9 +119,11 @@ setMethod("rbind2",  ## bind samples
                stop("SNP names mismatch")
             samples.colmatch <- intersect(colnames(x@samples),colnames(y@samples))
             new("aSnpMatrix",
-                .Data=rbind2(x@.Data,y@.Data),
+                .Data=rbind2(as(x@.Data,"SnpMatrix"),
+                  as(y@.Data,"SnpMatrix")),
                 snps=x@snps,
-                samples=rbind(x@samples[,samples.colmatch,drop=FALSE],y@samples[,samples.colmatch,drop=FALSE]),
+                samples=rbind(x@samples[,samples.colmatch,drop=FALSE],
+                  y@samples[,samples.colmatch,drop=FALSE]),
                 phenotype=x@phenotype,
                 alleles=x@alleles)})
 ##' @name aSnpMatrix-methods
@@ -134,7 +136,8 @@ setMethod("rbind2", ## bind samples
               stop("SNP names mismatch")
              samples.colmatch <- intersect(colnames(x@samples),colnames(y@samples))
             new("aXSnpMatrix",
-                .Data=rbind2(x@.Data,y@.Data),
+                .Data=rbind2(as(x@.Data,"XSnpMatrix"),
+                  as(y@.Data,"XSnpMatrix")),
                 snps=x@snps,
                 samples=rbind(x@samples[,samples.colmatch,drop=FALSE],y@samples[,samples.colmatch,drop=FALSE]),
                 phenotype=x@phenotype,
@@ -150,7 +153,8 @@ setMethod("cbind2", ## bind SNPs
               stop("sample names mismatch")
             snps.colmatch <- intersect(colnames(x@snps),colnames(y@snps))
             new("aSnpMatrix",
-                .Data=cbind2(x@.Data,y@.Data),
+                .Data=cbind2(as(x@.Data,"SnpMatrix"),
+                  as(y@.Data,"SnpMatrix")),
                 snps=rbind(x@snps[,snps.colmatch,drop=FALSE],y@snps[,snps.colmatch,drop=FALSE]),
                 samples=x@samples,
                 phenotype=x@phenotype,
@@ -166,7 +170,8 @@ setMethod("cbind2", ## bind SNPs
               stop("sample diploid status mismatch")
             snps.colmatch <- intersect(colnames(x@snps),colnames(y@snps))
             new("aXSnpMatrix",
-                .Data=cbind2(x@.Data,y@.Data),
+                .Data=cbind2(as(x@.Data,"XSnpMatrix"),
+                  as(y@.Data,"XSnpMatrix")),
                 snps=rbind(x@snps[,snps.colmatch,drop=FALSE],y@snps[,snps.colmatch,drop=FALSE]),
                 samples=x@samples,
                 phenotype=x@phenotype,
@@ -284,6 +289,8 @@ setMethod("switch.alleles",
             x@snps[snps,anames] <- x@snps[snps,rev(anames)]
             return(x)
           })
+
+
 ## setMethod("align.alleles",
 ##           signature=c(x="aSnpMatrix",ref="aSnpMatrix"),
 ##           align.alleles(x,ref))

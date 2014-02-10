@@ -113,3 +113,9 @@ test_that("dimnames/rownames/colnames", {
   }
 })
 
+## conversion
+context("conversion")
+test_that("conversion", {
+  expect_that(as(as11,"SnpMatrix"), is_a("SnpMatrix"))
+})
+          

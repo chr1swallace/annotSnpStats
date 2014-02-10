@@ -37,6 +37,27 @@ annot.read.plink <- function(filestub) {
 }
 
 setAs("aSnpMatrix", "SnpMatrix", function(from) new("SnpMatrix", from@.Data))
+##' Extract snpMatrix object from an object of class aSnpMatrix
+##'
+##' @param obj object of class aSnpMatrix
+##' @return object of class snpMatrix
+##' @export
 sm <- function(obj) {
   as(obj, "SnpMatrix")
+}
+##' Extract snps object from an object of class snpMatrix
+##'
+##' @inheritParams sm
+##' @export
+##' @return snp information 
+snps <- function(obj) {
+  obj@snps
+}
+##' Extract samples object from an object of class snpMatrix
+##'
+##' @inheritParams sm
+##' @export
+##' @return snp information 
+samples <- function(obj) {
+  obj@samples
 }
