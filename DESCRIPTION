@@ -12,11 +12,3 @@ Depends:
 Imports:
     methods
 License: GPL
-Collate:
-    'AllClasses.R'
-    'AllMethods.R'
-    'annotSnpStats-package.r'
-    'snp-match.R'
-    'AllGenerics.R'
-    'impute.R'
-    'conversion.R'

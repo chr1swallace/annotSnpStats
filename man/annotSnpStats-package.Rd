@@ -4,9 +4,9 @@
 \alias{annotSnpStats-package}
 \title{annotSnpStats}
 \description{
-  annotSnpStats
+annotSnpStats
 }
 \seealso{
-  \code{\link[snpStats:snpStats-package]{snpStats}}
+\code{\link[snpStats:snpStats-package]{snpStats}}
 }
 

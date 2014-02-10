@@ -2,7 +2,7 @@
 \alias{mismatch.count}
 \title{mismatch.count}
 \usage{
-  mismatch.count(x, y = NULL, tol = ncol(x)/100)
+mismatch.count(x, y = NULL, tol = ncol(x)/100)
 }
 \arguments{
   \item{x}{aSnpStats object}
@@ -13,13 +13,13 @@
   for duplicate samples}
 }
 \value{
-  a matrix, nrow(x) x nrow(y) with each entry the number of
-  mismatches if <tol, or tol
+a matrix, nrow(x) x nrow(y) with each entry the number of
+mismatches if <tol, or tol
 }
 \description{
-  Count mismatches between pairs of individuals
+Count mismatches between pairs of individuals
 }
 \author{
-  Chris Wallace
+Chris Wallace
 }
 
