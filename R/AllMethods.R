@@ -61,8 +61,8 @@ setMethod("[",
 setMethod("[",
           signature=c(x="aSnpMatrix", i="missing", j="ANY", drop="missing"),
           function(x, i, j) {
-            if(is.logical(i))
-              i <- which(i)
+            if(is.logical(j))
+              j <- which(j)
             new("aSnpMatrix",
 ##                .Data=new("SnpMatrix", matrix(as.raw(x@.Data),nrow=nrow(x@.Data), ncol=ncol(x@.Data))[,j,drop=FALSE] ),
                 .Data=x@.Data[,j,drop=FALSE],
