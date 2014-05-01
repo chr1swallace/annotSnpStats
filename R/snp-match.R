@@ -190,6 +190,79 @@ arev <- function(str) {
   ss <- lapply(ss, rev)
   sapply(ss, paste, collapse="/")  
 }
+##' Complement genotypes
+##'
+##' ie A/G -> T/C
+##' 
+##' @param x character vector of genotypes
+##' @export
+##' @return character vector of genotypes on the alternative strand
+##' @examples
+##' g.complement(c("A/G","A/T"))
+g.complement <- function(x) {
+  x <- toupper(x)
+  switches <- c("A"="t","T"="a","C"="g","G"="c")
+  for(i in seq_along(switches))
+    x <- sub(names(switches)[i],switches[i],x)
+  toupper(x)
+}
+
+##' Reverse alleles in a genotype
+##'
+##' ie A/G -> G/A
+##'
+##' @param x character vector of genotypes
+##' @export
+##' @return character vector of reversed genotypes 
+##' @examples
+##' g.rev(c("A/G","A/T"))
+g.rev <- function(x,sep="/") {
+  sapply(strsplit(x,sep),function(g) paste(rev(g),collapse="/"))
+}
+##' count specific genotypes
+##'
+##' sum of numbers in tt indexed by cbind(xind,yind). Allows that not
+##' all of xind and yind may be represented in tt
+##'
+##' @param tt table of genotype counts
+##' @param xind row indices
+##' @param yind y indices
+##' @return sum of numbers indexed by cbind(xind,yind)
+g.count <- function(tt,xind,yind) {
+  ind <- cbind(xind,yind)
+  ind <- ind[xind %in% rownames(tt) & yind %in% colnames(tt), , drop=FALSE]
+  sum(tt[ind],na.rm=TRUE)
+}
+
+count.switches <- function(tt) {
+  genos <- c("A/C","A/G","C/A","C/T","G/A","G/T","T/C","T/G")
+  rev.genos <- g.rev(genos)
+  str.genos <- g.strsw(genos)
+  revstr.genos <- g.rev(str.genos)
+  return(c(nochange=g.count(tt,genos,genos),
+           rev = g.count(tt,genos,rev.genos),
+           str.n=g.count(tt,genos,str.genos),
+           revstr.n=g.count(tt,genos,revstr.genos)))
+}
+
+g.class <- function(x,y) {
+  if(!identical(names(x),names(y)))
+    stop("x and y must relate to same SNPs")
+  mat <- matrix(FALSE,length(x),4,dimnames=list(names(x),c("nochange","rev","comp","revcomp")))
+  ## nochange
+  mat[ , "nochange" ] <- x==y
+  mat[, "rev"] <- x==g.rev(y)
+  mat[,"comp"] <- x==g.complement(y)
+  mat[,"revcomp"] <- x==g.rev(g.complement(y))
+  indels <- x %in% c("I/D","D/I")
+  mat[indels,c("comp","revcomp")] <- FALSE
+  ret <- apply(mat,1,which)
+  ret[ sapply(ret,length)>1 ] <- "ambig"
+  nret <- sapply(ret,is.numeric)==TRUE
+  ret[ nret ] <- colnames(mat)[ unlist(ret[nret])]
+  ret <- unlist(ret)
+  return(ret)
+}
 
 ##' switch alleles in x to match order in y
 ##'
@@ -208,26 +281,33 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01) {
     stop("x and y should contain the same SNPs in the same order")
   x.alleles <- apply(x@snps[,alleles(x)],1,paste,collapse="/")
   y.alleles <- apply(y@snps[,alleles(y)],1,paste,collapse="/")
-  print(table(x.alleles, y.alleles))
-  ok <- x.alleles == y.alleles | x.alleles == complement(y.alleles)
-  sw <- x.alleles == arev(complement(y.alleles)) | x.alleles == arev(y.alleles)
-  if(!all(ok | sw))
-    stop("couldn't work out all switches")
-  if(any(ok & sw)) {
-   ind <- ok & sw
-    cat(sum(ind),"SNPs have alleles not completely resolvable without strand information, confirming guess by checking allele freqs\n")
-
-     x.cs <- col.summary(x[,ind])
+  print(tt <- as.matrix(table(x.alleles, y.alleles)))
+  ## genotype classes
+  sw.class <- g.class(x.alleles,y.alleles)
+  any.comp <- any(sw.class %in% c("comp","revcomp"))
+  any.ambig <- any(sw.class=="ambig")
+  sw <- sw.class %in% c("rev","revcomp")
+  if(any.comp & any.ambig) {
+    ind <- which(sw.class=="ambig")
+    message(sum(ind)," SNPs have alleles not completely resolvable without strand information, confirming guess by checking allele freqs.")
+    x.cs <- col.summary(x[,ind])
     y.cs <- col.summary(y[,ind])
 
     rdiff <- x.cs[,"RAF"] - y.cs[,"RAF"]
     sw2 <- ifelse(abs(x.cs[,"RAF"] - y.cs[,"RAF"]) < abs(1 - x.cs[,"RAF"] - y.cs[,"RAF"]), FALSE, TRUE)
     sw2[ abs(x.cs[,"MAF"]-0.5)<mafdiff ] <- NA
-    cat(sum(is.na(sw2)),"SNPs not resolvable (MAF too close to 0.5)\n")
-
+    message(sum(is.na(sw2))," SNPs not resolvable (MAF too close to 0.5).")
     sw[ind] <- sw2
- }
+  }
 
+  if(!any.comp & any.ambig) { # 
+    ind <- which(sw.class=="ambig")
+    message(sum(ind)," SNPs have alleles not completely resolvable without strand information, but no evidence of strand switches.\nAssuming fixed strand.")
+     ind <- which(sw.class=="ambig")
+     sw2 <- x.alleles[ind]==rev(y.alleles[ind])
+     sw[ind] <- sw2
+   } 
+  
   x@.Data[,is.na(sw)] <- as.raw("00")
   x <- switch.alleles(x, which(sw))
   x@snps[, alleles(x) ] <- y@snps[, alleles(y)]
