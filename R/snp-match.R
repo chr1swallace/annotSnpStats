@@ -281,13 +281,14 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01) {
     stop("x and y should contain the same SNPs in the same order")
   x.alleles <- apply(x@snps[,alleles(x)],1,paste,collapse="/")
   y.alleles <- apply(y@snps[,alleles(y)],1,paste,collapse="/")
+  message("allele codes before switching")
   print(tt <- as.matrix(table(x.alleles, y.alleles)))
   ## genotype classes
   sw.class <- g.class(x.alleles,y.alleles)
   any.comp <- any(sw.class %in% c("comp","revcomp"))
   any.ambig <- any(sw.class=="ambig")
   sw <- sw.class %in% c("rev","revcomp")
-  if(any.comp & any.ambig) {
+  if(any.comp & any.ambig) { # there are reverse complements in the distinguishable cases
     ind <- which(sw.class=="ambig")
     message(sum(ind)," SNPs have alleles not completely resolvable without strand information, confirming guess by checking allele freqs.")
     x.cs <- col.summary(x[,ind])
@@ -300,11 +301,11 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01) {
     sw[ind] <- sw2
   }
 
-  if(!any.comp & any.ambig) { # 
+  if(!any.comp & any.ambig) { # there are no reverse complements in distinguishable cases
     ind <- which(sw.class=="ambig")
-    message(sum(ind)," SNPs have alleles not completely resolvable without strand information, but no evidence of strand switches.\nAssuming fixed strand.")
+    message(sum(ind)," SNPs have alleles not completely resolvable without strand information, but no evidence of strand switches amongst SNPs which are resolvable.\nAssuming fixed strand.")
      ind <- which(sw.class=="ambig")
-     sw2 <- x.alleles[ind]==rev(y.alleles[ind])
+     sw2 <- x.alleles[ind]==g.rev(y.alleles[ind])
      sw[ind] <- sw2
    } 
   
