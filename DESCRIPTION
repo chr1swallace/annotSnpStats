@@ -2,7 +2,7 @@ Package: annotSnpStats
 Title: Annotated SnpMatrix objects
 Description: Simple class to allow SnpMatrix objects to be manipulated together
     with snp annotation files
-Version: 0.1
+Version: 0.2
 Maintainer: Chris Wallace <cew54@cam.ac.uk>
 Author: Chris Wallace <cew54@cam.ac.uk>
 Authors@R: c(person("Chris", "Wallace", role=c("aut","cre"), email =
