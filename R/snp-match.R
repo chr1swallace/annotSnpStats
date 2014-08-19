@@ -279,6 +279,45 @@ g.class <- function(x,y) {
 align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01) {
   if(!identical(colnames(x), colnames(y)))
     stop("x and y should contain the same SNPs in the same order")
+  if(any(is.na(x@snps[,alleles(x)])) || any(is.na(y@snps[,alleles(x)]))) {
+    message("Missing alleles found, trying to fill in.  Missingness table before correction:")
+    x.missing <- apply(is.na(x@snps[,alleles(x)]),1,any)
+    y.missing <- apply(is.na(y@snps[,alleles(y)]),1,any)
+    print(table(x.missing,y.missing))
+    x1 <- x@snps[,alleles(x)[1]]
+    x2 <- x@snps[,alleles(x)[2]]
+    y1 <- y@snps[,alleles(y)[1]]
+    y2 <- y@snps[,alleles(y)[2]]    
+    m <- is.na(x1) & !is.na(x2) & !y.missing
+    if(any(m)) {
+      x1[ which(m & x2==y2) ] <- y1[ which(m & x2==y2) ]
+      x1[ which(m & x2==y1) ] <- y2[ which(m & x2==y1) ]
+    }    
+    m <- !is.na(x1) & is.na(x2) & !y.missing
+    if(any(m)) {
+      x2[ which(m & x1==y2) ] <- y1[ which(m & x1==y2) ]
+      x2[ which(m & x1==y1) ] <- y2[ which(m & x1==y1) ]
+    }
+    m <- is.na(y1) & !is.na(y2) & !x.missing
+    if(any(m)) {
+      y1[ which(m & y2==x2) ] <- x1[ which(m & y2==x2) ]
+      y1[ which(m & y2==x1) ] <- x2[ which(m & y2==x1) ]
+    }    
+    m <- !is.na(y1) & is.na(y2) & !x.missing
+    if(any(m)) {
+      y2[ which(m & y1==x2) ] <- x1[ which(m & y1==x2) ]
+      y2[ which(m & y1==x1) ] <- x2[ which(m & y1==x1) ]
+    }
+    x@snps[,alleles(x)[1]] <-     x1
+    x@snps[,alleles(x)[2]] <-     x2
+    y@snps[,alleles(y)[1]] <-     y1
+    y@snps[,alleles(y)[2]] <-     y2
+    x.missing <- apply(is.na(x@snps[,alleles(x)]),1,any)
+    y.missing <- apply(is.na(y@snps[,alleles(y)]),1,any)
+    message("Missingness table after correction:")
+    print(table(x.missing,y.missing)) 
+  }
+
   x.alleles <- apply(x@snps[,alleles(x)],1,paste,collapse="/")
   y.alleles <- apply(y@snps[,alleles(y)],1,paste,collapse="/")
   message("allele codes before switching")
@@ -290,7 +329,7 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01) {
   sw <- sw.class %in% c("rev","revcomp")
   if(any.comp & any.ambig) { # there are reverse complements in the distinguishable cases
     ind <- which(sw.class=="ambig")
-    message(sum(ind)," SNPs have alleles not completely resolvable without strand information, confirming guess by checking allele freqs.")
+    message(length(ind)," SNPs have alleles not completely resolvable without strand information, confirming guess by checking allele freqs.")
     x.cs <- col.summary(x[,ind])
     y.cs <- col.summary(y[,ind])
 
@@ -303,7 +342,7 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01) {
 
   if(!any.comp & any.ambig) { # there are no reverse complements in distinguishable cases
     ind <- which(sw.class=="ambig")
-    message(sum(ind)," SNPs have alleles not completely resolvable without strand information, but no evidence of strand switches amongst SNPs which are resolvable.\nAssuming fixed strand.")
+    message(length(ind)," SNPs have alleles not completely resolvable without strand information,\nbut there is no evidence of strand switches amongst SNPs which are resolvable.\nAssuming fixed strand.")
      ind <- which(sw.class=="ambig")
      sw2 <- x.alleles[ind]==g.rev(y.alleles[ind])
      sw[ind] <- sw2
