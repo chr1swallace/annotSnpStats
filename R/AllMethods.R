@@ -182,8 +182,8 @@ setMethod("cbind2", ## bind SNPs
               stop("sample names mismatch")
             snps.colmatch <- intersect(colnames(x@snps),colnames(y@snps))
             new("aSnpMatrix",
-                .Data=cbind2(as(x@.Data,"SnpMatrix"),
-                  as(y@.Data,"SnpMatrix")),
+                .Data=cbind2(as(x,"SnpMatrix"),
+                  as(y,"SnpMatrix")),
                 snps=rbind(x@snps[,snps.colmatch,drop=FALSE],y@snps[,snps.colmatch,drop=FALSE]),
                 samples=x@samples,
                 phenotype=x@phenotype,
@@ -199,8 +199,8 @@ setMethod("cbind2", ## bind SNPs
               stop("sample diploid status mismatch")
             snps.colmatch <- intersect(colnames(x@snps),colnames(y@snps))
             new("aXSnpMatrix",
-                .Data=cbind2(as(x@.Data,"XSnpMatrix"),
-                  as(y@.Data,"XSnpMatrix")),
+                .Data=cbind2(as(x,"XSnpMatrix"),
+                  as(y,"XSnpMatrix")),
                 snps=rbind(x@snps[,snps.colmatch,drop=FALSE],y@snps[,snps.colmatch,drop=FALSE]),
                 samples=x@samples,
                 phenotype=x@phenotype,

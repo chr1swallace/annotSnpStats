@@ -279,7 +279,7 @@ g.class <- function(x,y) {
 align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01) {
   if(!identical(colnames(x), colnames(y)))
     stop("x and y should contain the same SNPs in the same order")
-  if(any(is.na(x@snps[,alleles(x)])) || any(is.na(y@snps[,alleles(x)]))) {
+  if(any(is.na(x@snps[,alleles(x)])) || any(is.na(y@snps[,alleles(y)]))) {
     message("Missing alleles found, trying to fill in.  Missingness table before correction:")
     x.missing <- apply(is.na(x@snps[,alleles(x)]),1,any)
     y.missing <- apply(is.na(y@snps[,alleles(y)]),1,any)
@@ -320,7 +320,7 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01) {
 
   x.alleles <- apply(x@snps[,alleles(x)],1,paste,collapse="/")
   y.alleles <- apply(y@snps[,alleles(y)],1,paste,collapse="/")
-  message("allele codes before switching")
+  message("These are the allele codes as currently defined, before any switching:")
   print(tt <- as.matrix(table(x.alleles, y.alleles)))
   ## genotype classes
   sw.class <- g.class(x.alleles,y.alleles)
