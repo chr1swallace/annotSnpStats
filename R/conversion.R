@@ -37,6 +37,8 @@ annot.read.plink <- function(filestub) {
 }
 
 setAs("aSnpMatrix", "SnpMatrix", function(from) new("SnpMatrix", from@.Data))
+setAs("aXSnpMatrix", "XSnpMatrix", function(from) new("XSnpMatrix", from@.Data, diploid=from@diploid))
+
 ##' Extract snpMatrix object from an object of class aSnpMatrix
 ##'
 ##' @param obj object of class aSnpMatrix
@@ -45,19 +47,6 @@ setAs("aSnpMatrix", "SnpMatrix", function(from) new("SnpMatrix", from@.Data))
 sm <- function(obj) {
   as(obj, "SnpMatrix")
 }
-##' Extract snps object from an object of class snpMatrix
-##'
-##' @inheritParams sm
-##' @export
-##' @return snp information 
-snps <- function(obj) {
-  obj@snps
-}
-##' Extract samples object from an object of class snpMatrix
-##'
-##' @inheritParams sm
-##' @export
-##' @return snp information 
-samples <- function(obj) {
-  obj@samples
-}
+
+## MAKE THESE METHODS!!!
+

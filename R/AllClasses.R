@@ -4,17 +4,11 @@
 #'
 #' This is a small class to allow subsetting and binding operations to be applied to SnpMatrix objects together with their SNP and sample support objects in single operations.  It means the different objects are assured to always line up.
 #'
-#'@section Slots: 
-#'  \describe{
-#'    \item{\code{.Data}:}{\code{SnpMatrix} or \code{XSnpMatrix} object}
-#'    \item{\code{snps}:}{\code{data.frame} with rownames matching colnames of \code{.Data}}
-#'    \item{\code{samples}:}{\code{data.frame} with rownames matching rownames of \code{.Data}}
-#'    \item{\code{diploid}:}{logical vector of length == \code{ncol{.Data}}, TRUE indicates sample from a diploid individual}
-#'  }
+#'@slot .Data \code{SnpMatrix} or \code{XSnpMatrix} object
+#'@slot snps \code{data.frame} with rownames matching colnames of \code{.Data}
+#'@slot samples \code{data.frame} with rownames matching rownames of \code{.Data}
+#'@slot diploid logical vector of length == \code{ncol{.Data}}, TRUE indicates sample from a diploid individual
 #'
-#' @name aSnpMatrix
-#' @rdname aSnpMatrix
-#' @aliases aSnpMatrix-class
 #' @exportClass aSnpMatrix
 #' @author Chris Wallace
 setClass("aSnpMatrix",
@@ -33,8 +27,7 @@ setClass("aSnpMatrix",
              stop("alleles must specify a two columns of object@snps")
          })
 
-#' @rdname aSnpMatrix
-#' @aliases aXSnpMatrix-class
+#' @rdname aSnpMatrix-class
 #' @exportClass aXSnpMatrix
 setClass("aXSnpMatrix",
          representation(snps="data.frame",samples="data.frame",phenotype="character",alleles="character",dipload="logical"),

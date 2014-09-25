@@ -66,13 +66,39 @@ sample.match <- function(x,y,col.x=0,col.y=0) {
   id.x <- sample.id(x,col.x)
   id.y <- sample.id(y,col.y)
   ids <- intersect(id.x,id.y)
-  if(!length(ids))
-    stop("no overlapping samples found")
+  if(!length(ids)) {
+    message("no overlapping samples found")
+    return(NULL)
+  }
+  message(length(ids)," overlapping samples found")
   m.x <- match(ids,id.x)
   m.y <- match(ids,id.y)
   return(list(x=m.x, y=m.y))
 }
-##' Count mismatches between pairs of individuals
+##' Count mismatches between all pairs of individuals
+##'
+##' @title mismatch.count.all
+##' @inheritParams dups
+##' @return a matrix, nrow(x) x nrow(y) with each entry the number of
+##' mismatches if <tol, or tol
+##' @author Chris Wallace
+##' @export
+mismatch.count.all <- function(x,y=NULL,tol=ncol(x)/100) {
+  if(!identical(colnames(x), colnames(y)))
+    stop("x and y need identical snps or sample comparison will be meaningless")
+  
+  counts <- matrix(as.integer(0),nrow=nrow(y),ncol=nrow(x),dimnames=list(rownames(y),rownames(x)))
+  
+  ret <- .C("samplediffall_c", x@.Data, y@.Data, counts=counts, as.integer(tol),
+            nrow(x@.Data), ncol(x@.Data),
+            nrow(y@.Data), ncol(y@.Data),
+            PACKAGE="annotSnpStats")
+  ## .Call("countmatches", Rx=x@.Data, Ry=y@.Data,
+  ##   PACKAGE="annotSnpStats"))
+  return(ret[["counts"]])
+  
+}
+##' Count mismatches between specified pairs of individuals
 ##'
 ##' @title mismatch.count
 ##' @inheritParams dups
@@ -83,12 +109,14 @@ sample.match <- function(x,y,col.x=0,col.y=0) {
 mismatch.count <- function(x,y=NULL,tol=ncol(x)/100) {
   if(!identical(colnames(x), colnames(y)))
     stop("x and y need identical snps or sample comparison will be meaningless")
+   if(!identical(rownames(x), rownames(y)))
+    stop("x and y need identical samples for pairwise comparison.  Did you mean mismatch.count.all?")
   
-  counts <- matrix(as.integer(0),nrow=nrow(y),ncol=nrow(x),dimnames=list(rownames(y),rownames(x)))
+  counts <- numeric(nrow(x))
+  names(counts) <- rownames(x)
   
   ret <- .C("samplediff_c", x@.Data, y@.Data, counts=counts, as.integer(tol),
             nrow(x@.Data), ncol(x@.Data),
-            nrow(y@.Data), ncol(y@.Data),
             PACKAGE="annotSnpStats")
   ## .Call("countmatches", Rx=x@.Data, Ry=y@.Data,
   ##   PACKAGE="annotSnpStats"))
@@ -141,17 +169,17 @@ dups <- function(x,y,tol=ncol(x)/50,type=c("hethom","all")) {
 ##' threshold for keeping SNPs.  \code{z.HWE} is special, and applies
 ##' to abs(z.HWE).
 ##' 
-##' @title snp.trim
+##' @title snp.qc
 ##' @param x annotSnpStats object
 ##' @param thr named character vector, see Details.
 ##' @examples
 ##' data(for.exercise, package="snpStats")
 ##' ## find rare SNPs with high call rates that do not deviate from HWE
-##' snps.ok <- snp.trim(snps.10, thr=c(Call.rate=">0.99", MAF="<0.03", z.HWE="<3"))
+##' snps.ok <- snp.qc(snps.10, thr=c(Call.rate=">0.99", MAF="<0.03", z.HWE="<3"))
 ##' @return an annotSnpStats object with only SNPs that meet the criteria specified.
 ##' @author Chris Wallace
 ##' @export
-snp.trim <- function(x, thr=c(Call.rate=">0.99", MAF=">0.03", z.HWE="<5")) {
+snp.qc <- function(x, thr=c(Call.rate=">0.99", MAF=">0.03", z.HWE="<5")) {
   cs <- col.summary(x)
   cs[,"z.HWE"] <- abs(cs[,"z.HWE"])
   cn <- colnames(cs)
@@ -212,6 +240,7 @@ g.complement <- function(x) {
 ##' ie A/G -> G/A
 ##'
 ##' @param x character vector of genotypes
+##' @param sep character with which to separate alleles. Default is "/".
 ##' @export
 ##' @return character vector of reversed genotypes 
 ##' @examples
@@ -237,7 +266,7 @@ g.count <- function(tt,xind,yind) {
 count.switches <- function(tt) {
   genos <- c("A/C","A/G","C/A","C/T","G/A","G/T","T/C","T/G")
   rev.genos <- g.rev(genos)
-  str.genos <- g.strsw(genos)
+  str.genos <- g.complement(genos)
   revstr.genos <- g.rev(str.genos)
   return(c(nochange=g.count(tt,genos,genos),
            rev = g.count(tt,genos,rev.genos),

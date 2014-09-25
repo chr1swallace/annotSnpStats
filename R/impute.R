@@ -41,16 +41,18 @@ impute.missing <- function(X,bp=1:ncol(X),strata=NULL, numeric=FALSE, ...) {
   if(numeric) {
     return(N)
   } else {
+    N <- pmin(N,2)
+    N <- pmax(N,0)
     if(is(X,"aSnpMatrix")) {
       return(new("aSnpMatrix",
-                 .Data=new("SnpMatrix",data=round(N)+1, nrow=nrow(N), ncol=ncol(N), dimnames=dimnames(N)),
+                 .Data=suppressWarnings(new("SnpMatrix",data=round(N)+1, nrow=nrow(N), ncol=ncol(N), dimnames=dimnames(N))),
                  snps=X@snps,
                  samples=X@samples,
                  phenotype=X@phenotype,
                  alleles=X@alleles))
     } else {
       return(new("SnpMatrix",
-                 .Data=new("SnpMatrix",data=round(N)+1, nrow=nrow(N), ncol=ncol(N), dimnames=dimnames(N))))
+                 .Data=suppressWarnings(new("SnpMatrix",data=round(N)+1, nrow=nrow(N), ncol=ncol(N), dimnames=dimnames(N)))))
     }
   }
 }
