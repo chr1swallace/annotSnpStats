@@ -19,11 +19,16 @@
 
 * Introduction
 
-=annotSnpStats= defines the =aSnpMatrix= class which extends the
-=SnpMatrix= class from =snpStats= by aligning two dataframes containing
-SNP (column) specific and sample (row) specific information.
-Subsetting, binding etc can then be carried out keeping this
-additional information aligned.
+=annotSnpStats= defines the =aSnpMatrix= and =aXSnpMatrix= classes
+which extend the =SnpMatrix= and =XSnpMatrix= classes from =snpStats=
+by aligning genotype data with two dataframes containing SNP (column)
+specific and sample (row) specific information.  Subsetting, binding
+etc can then be carried out keeping this additional information
+aligned.
+
+Various utility functions have been added which aim to make the
+manipulation and merging of two or more genotype datasets as painless
+and as accurate as possible.
 
 * Examples
 
@@ -66,13 +71,13 @@ summary(as11)
 #+end_src
 
 However, certain =snpStats= functions do not use the S4 interface, and
-inheritance then gets a bit messed up.  In that case, you need to
-explicity extract the =SnpMatrix= object
+inheritance then gets a bit messed up.  In that case, you may need to
+explicity extract the =SnpMatrix= object.  For example, to use
+snpStats's =ld= function:
 
 #+begin_src R :ravel 
 ld(as(as11,"SnpMatrix"),depth=5,statistic="R.squared")
 #+end_src
-
 
 ** Subsetting
 
@@ -108,6 +113,25 @@ cbind2(as11,as12)
 rbind2(as11,as21)
 #+end_src
 
+* Allele codes
+Genotype data is stored in a (compressed) format with 1=AA, 2=AB and
+3=BB genotypes.  If you wish to merge two datasets, you need to know
+what each code corresponds to.  This information should be stored in a
+pair of columns in the =snps= slot of the object.  The first member
+should show the base (A, C, G or T) corresponding to an AA homozygote,
+and the second the base corresponding to a BB homozygote.  =aSnpStats=
+functions can try and guess which columns might be storing this
+information, but it is safer to specify explicitly.
+
+#+begin_src R :ravel 
+snps(asub) <- cbind(snps(asub),a1="C",a2="G")
+# set the allele codes
+alleles(asub) <- c("a1","a2")
+head(snps(asub))
+# check the allele codes
+alleles(asub)
+#+end_src
+
 * Other functions
 
 A few other handy functions are included which should make joining
@@ -118,6 +142,8 @@ pages for more detail on these.
   aSnpStats objects
 - =mismatch.count= quickly counts mismatched genotypes between pairs
   of individuals
+- =mismatch.count.all= quickly counts mismatched genotypes between all
+  possible pairs of individuals - this can be slow!
 - =sample.match= identifies indices of overlapping samples in two
   aSnpMatrix objects.  By default, match is on =rownames(x@samples)=,
   =rownames(y@samples)=.
@@ -125,8 +151,8 @@ pages for more detail on these.
   aSnpMatrix objects.  By default, match is on =rownames(x@snps)=,
   =rownames(y@snps)=.
 - =snp.trim= drops SNPs from an annotSnpStats object according to SNP
-  qc summary stats
+  qc summary stats according to user specified limits
 - =align.alleles= automates using =snpStats::switch.alleles= to ensure
   numeric annotation of genotypes uses a consistent code between two
-  different datasets, essential to join up data.
+  different datasets, essential to join up data.  
  

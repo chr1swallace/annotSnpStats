@@ -9,6 +9,8 @@ Authors@R: c(person("Chris", "Wallace", role=c("aut","cre"), email =
     "chris.wallace@cimr.cam.ac.uk"))
 Depends:
     snpStats
+Suggests:
+    testthat
 Imports:
     methods
 License: GPL
