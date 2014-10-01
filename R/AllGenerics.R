@@ -71,15 +71,29 @@ setGeneric("snps",
            def=function(obj) {
              return(obj@snps)
            })
-##' Extract samples object from an object of class asnpMatrix
+##' Get/set samples object from an object of class asnpMatrix
 ##'
 ##' @inheritParams sm
+##' @rdname samples-methods
 ##' @export
 ##' @return snp information 
 setGeneric("samples",
            def=function(obj) {
              return(obj@samples)
            })
+##' @export
+##' @rdname samples-methods
+##' @aliases samples<-,aSnpMatrix-method
+setGeneric("samples<-",
+           def=function(x, value) {
+             if(nrow(value)!=nrow(x))
+               stop("samples must have same nrow as x")
+             if(!identical(rownames(value),rownames(x)))
+               stop("samples must have identical rownames to x")
+             x@samples <- value
+             return(x)
+           })
+
 
 ##' Add empty entries to x for SNPs found in y
 ##'
