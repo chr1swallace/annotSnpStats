@@ -109,6 +109,17 @@ test_that("binding works", {
   expect_that(rbind2(xs11,xs11), throws_error())
 })
 
+## adding
+context("adding")
+test_that("dimensions are correct after add.snps or add.samples", {
+    asnps <- add.snps(as11,as12)
+    asamples <- add.samples(as11,as21)
+    expect_that(ncol(asnps), equals(ncol(as11)+ncol(as12)))
+    expect_that(nrow(asnps), equals(nrow(as11)))
+    expect_that(ncol(asamples), equals(ncol(as11)))
+    expect_that(nrow(asamples), equals(nrow(as11)+nrow(as21)))
+})
+
 ## rownames
 context("dimnames")
 test_that("dimnames/rownames/colnames", {

@@ -1,13 +1,30 @@
-##' get/set allele variables in an annotSnpStats object
+
+##' Accessors
+##' 
+##' get/set variables in an annotSnpStats object
 ##'
-##' @title alleles
+##' \code{alleles()} gets the two element character vector which
+##' names the columns in the \code{snps} slot which records the
+##' ordering of base alleles for that SNP.
+##'
 ##' @param x object of class annotSnpStats
-##' @param value character vector of length 2, giving the variable names for alelles 1 and 2
-##' @return no return value
+##' @param value replacement value
+##' @return the column names requested
 ##' @author Chris Wallace
 ##' @export
-##' @rdname alleles-methods
+##' @rdname accessors
 ##' @keywords methods
+##' @examples
+##' data(for.exercise)
+##' X <- new("aSnpMatrix",
+##'          .Data = snps.10[1:10,1:5],
+##'          snps=snp.support[1:5,],
+##'          samples=subject.support[1:10,])
+##' X
+##' phenotype(X) <- "cc"
+##' alleles(X) <- c("A1","A2")
+##' X
+##' summary(X)
 setGeneric("alleles",
            def=function(x) {
              if(length(x@alleles))
@@ -24,98 +41,74 @@ setGeneric("alleles",
              return(NULL)
            })
 ##' @export
-##' @rdname alleles-methods
-##' @keywords methods
-##' @aliases alleles<-,aSnpMatrix-method
+##' @rdname accessors
+##' @details
+##' For \code{alleles<-}, value is a character vector of
+##' length 2, giving the columns names of the data.frame in the
+##' \code{snps} slot corresponding to alelles 1 and 2.
 setGeneric("alleles<-",
            def=function(x, value) {
-             x@alleles <- value
-             return(x)
+               if(!(all(value %in% colnames(snps(x)))) || length(value)!=2)
+                   stop("alleles must be a vector of length 2 naming columns found in snps(x)")
+               x@alleles <- value
+               return(x)
            })
 
 
-##' get phenotype variable in an annotSnpStats object
-##'
-##' @return character string 
-##' @author Chris Wallace
 ##' @export
-##' @rdname phenotype-methods
+##' @rdname accessors
+##' @details
+##' \code{phenotype} gets/sets the column name of the data.frame in the
+##' \code{samples} slots which encodes the phenotype.
 setGeneric("phenotype",
            def=function(x) {
-             x@phenotype
+                     x@phenotype
            })
-##' set phenotype variable in an annotSnpStats object
-##'
-##' @param x object of class aSnpMatrix or aXSnpMatrix
-##' @param value character string naming phenotype column in samples(x)
-##' @return no return value
-##' @author Chris Wallace
 ##' @export
-##' @rdname phenotype-methods
-##' @aliases phenotype<-,aSnpMatrix,ANY-method
+##' @rdname accessors
+##' @aliases phenotype<-,aSnpMatrix
+##' @aliases phenotype<-,aXSnpMatrix
 setGeneric("phenotype<-",
            def=function(x, value) {
-             if(!(value %in% colnames(samples(x))))
+             if(!(value %in% colnames(samples(x))) || length(value)!=1)
                stop("phenotype must be name of a column in samples(x)")
              x@phenotype <- value
              return(x)
            })
 
 
-##' Extract snps object from an object of class asnpMatrix
-##'
-##' @inheritParams sm
 ##' @export
-##' @return snp information 
+##' @rdname accessors
+##' @details \code{snps()} extracts the snps \code{data.frame} from an
+##' object of class aSnpMatrix
 setGeneric("snps",
-           def=function(obj) {
-             return(obj@snps)
+           def=function(x) {
+             return(x@snps)
            })
-##' Get/set samples object from an object of class asnpMatrix
-##'
-##' @inheritParams sm
-##' @rdname samples-methods
 ##' @export
-##' @return snp information 
+##' @rdname accessors
+setGeneric("snps<-",
+           def=function(x,value) {
+               if(!is.data.frame(value))
+                   stop("snps must be a data.frame")
+               x@snps <- value
+               return(x)
+           })
+##' @export
+##' @rdname accessors
+##' @details \code{samples()} extracts the samples \code{data.frame}
+##' from an object of class aSnpMatrix
 setGeneric("samples",
-           def=function(obj) {
-             return(obj@samples)
-           })
-##' @export
-##' @rdname samples-methods
-##' @aliases samples<-,aSnpMatrix-method
-setGeneric("samples<-",
-           def=function(x, value) {
-             if(nrow(value)!=nrow(x))
-               stop("samples must have same nrow as x")
-             if(!identical(rownames(value),rownames(x)))
-               stop("samples must have identical rownames to x")
-             x@samples <- value
-             return(x)
+           def=function(x) {
+             return(x@samples)
            })
 
 
-##' Add empty entries to x for SNPs found in y
-##'
-##' @rdname add-methods
-##' @name addMethods
-##' @param x aSnpMatrix or aXSnpMatrix
-##' @param y aSnpMatrix or aXSnpMatrix
-##' @export
-##' @return aSnpMatrix: x with some empty (as.raw("00")) columns appended corresponding to SNPs in y
-setGeneric("add.snps",function(x,y) standardGeneric("add.snps"))
 
-##' Add empty entries to x for samples found in y
-##'
-##' @rdname add-methods
-##' @name addMethods
-##' @export
-##' @return aSnpMatrix: x with some empty (as.raw("00")) rows appended corresponding to samples in y
-setGeneric("add.samples",function(x,y) standardGeneric("add.samples"))
 
-##' set rownames and colnames simulateously
-##'
-##' @export
-##' @param x aSnpMatrix or aXSnpMatrix object
-##' @param value list of two character vectors giving row and sample names
-setGeneric("dimnames<-")
+## ##' set rownames and colnames simultaneously
+## ##'
+## ##' @export
+## ##' @param x aSnpMatrix or aXSnpMatrix object
+## ##' @param value list of two character vectors giving row and sample names
+## setGeneric("dimnames<-")

@@ -76,7 +76,7 @@ explicity extract the =SnpMatrix= object.  For example, to use
 snpStats's =ld= function:
 
 #+begin_src R :ravel 
-ld(as(as11,"SnpMatrix"),depth=5,statistic="R.squared")
+ld(as(as11,"SnpMatrix"),depth=5,stats="R.squared")
 #+end_src
 
 ** Subsetting

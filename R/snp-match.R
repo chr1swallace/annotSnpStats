@@ -266,7 +266,7 @@ g.count <- function(tt,xind,yind) {
 count.switches <- function(tt) {
   genos <- c("A/C","A/G","C/A","C/T","G/A","G/T","T/C","T/G")
   rev.genos <- g.rev(genos)
-  str.genos <- g.strsw(genos)
+  str.genos <- g.complement(genos)
   revstr.genos <- g.rev(str.genos)
   return(c(nochange=g.count(tt,genos,genos),
            rev = g.count(tt,genos,rev.genos),

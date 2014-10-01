@@ -8,9 +8,9 @@
 ##' @param y object of same class as x
 ##' @param ... other arguments passed to \code{snpStats::ld()}
 ld <- function(x, y=NULL, ...) {
-  if(is(x,"aSnpMatrix"))
+  if(is(x,"aSnpMatrix") || is(x,"aXSnpMatrix"))
     x <- sm(x)
-  if(!is.null(y) && is(y,"aSnpMatrix"))
+  if(!is.null(y) && (is(y,"aSnpMatrix") || is(x,"aXSnpMatrix")))
     y <- sm(y)
   snpStats::ld(x=x, y=y, ...)
 }
