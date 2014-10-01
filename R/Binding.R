@@ -36,21 +36,12 @@ setMethod("rbind2",  ## bind samples
                stop("SNP names mismatch")
             samples.colmatch <- intersect(colnames(x@samples),colnames(y@samples))
             ## missing alleles
-            if(any(is.na(x@snps[,alleles(x)]))) {
-              x.missing <- apply(is.na(x@snps[,alleles(x)]),1,any)
-              y.missing <- apply(is.na(y@snps[,alleles(y)]),1,any)
-              message("Missing alleles found.  Missingness table:")
-              print(table(x.missing,y.missing))
-              wh1 <- which(is.na(x@snps[,alleles(x)[1]]))
-              wh2 <- which(is.na(x@snps[,alleles(x)[2]]))
-              if(length(wh1))
-                x@snps[wh1,alleles(x)[1]] <- y@snps[wh1,alleles(y)[1]] 
-              if(length(wh2))
-                x@snps[wh2,alleles(x)[2]] <- y@snps[wh2,alleles(y)[2]] 
-              message("Missingness updated:")
-              x.missing.update <- apply(is.na(x@snps[,alleles(x)]),1,any)
-              print(table(x.missing,x.missing.update))
-            }
+            hasAlleles.x <- suppressWarnings(is.null(alleles(x)))
+            hasAlleles.y <- suppressWarnings(is.null(alleles(y)))
+            if(hasAlleles.x && hasAlleles.y && any(is.na(x@snps[,alleles(x)])))
+              x <- alleles.update(x,y)
+            if(hasAlleles.x && hasAlleles.y && any(is.na(y@snps[,alleles(y)])))
+              y <- alleles.update(y,x)
             ## overlapping sample ids
             m <- match(rownames(x),rownames(y))
             if(any(!is.na(m))) {
@@ -66,6 +57,29 @@ setMethod("rbind2",  ## bind samples
                   y@samples[,samples.colmatch,drop=FALSE]),
                 phenotype=x@phenotype,
                 alleles=x@alleles)})
+
+alleles.update <- function(x,y) {
+  x.missing <- apply(is.na(x@snps[,alleles(x)]),1,any)
+  y.missing <- apply(is.na(y@snps[,alleles(y)]),1,any)
+  message("Missing alleles found.")
+  if(verbose) {
+    message("  Missingness table:")
+    print(table(x.missing,y.missing))
+  }
+  wh1 <- which(is.na(x@snps[,alleles(x)[1]]))
+  wh2 <- which(is.na(x@snps[,alleles(x)[2]]))
+  if(length(wh1))
+    x@snps[wh1,alleles(x)[1]] <- y@snps[wh1,alleles(y)[1]] 
+  if(length(wh2))
+    x@snps[wh2,alleles(x)[2]] <- y@snps[wh2,alleles(y)[2]] 
+  x.missing.update <- apply(is.na(x@snps[,alleles(x)]),1,any)
+  if(verbose) {
+    message("  Missingness updated:")
+    print(table(x.missing,x.missing.update))
+  }
+  return(x)
+}
+
 ##' @rdname binding
 ##' @export
 setMethod("rbind2", ## bind samples
