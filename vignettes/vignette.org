@@ -1,7 +1,7 @@
 #+TITLE:     annotSnpStats: a package for annotated SnpMatrix objects
 #+AUTHOR:    Chris Wallace
 #+EMAIL:     chris.wallace@cimr.cam.ac.uk
-#+DATE:      2013-05-22 Wed
+#+DATE:      \today
 #+DESCRIPTION:
 #+KEYWORDS:
 #+LANGUAGE:  en
@@ -26,17 +26,19 @@ specific and sample (row) specific information.  Subsetting, binding
 etc can then be carried out keeping this additional information
 aligned.
 
-Various utility functions have been added which aim to make the
-manipulation and merging of two or more genotype datasets as painless
-and as accurate as possible.
+If you don't know what the =snpStats= package does, then this package
+is unlikely to be of use.  But if you use =snpStats=, then, hopefully,
+annotSnpStats will make lots of things easier.  Various utility
+functions have been added which aim to make the manipulation and
+merging of two or more genotype datasets as painless and as accurate
+as possible.
 
-* Examples
+* Basic data structure
 
-The advantage of using =annotSnpStats= is perhaps best seen using some
-example data from the =snpStats= package to define some new
-=aSnpMatrix= objects and play with them.
+aSnpMatrix objects consist, at a minimum, of a data matrix
+(=(X)SnpMatrix=), and row-wise sample information =data.frame= and and
+column-wise SNP information =data.frame=.
 
-** Create new objects
 #+begin_src R :ravel 
 library(snpStats)
 library(annotSnpStats)
@@ -55,6 +57,42 @@ as11 <- new("aSnpMatrix",
 as11
 #+end_src
 
+Optionally, you can set a =phenotype()= which records which column of
+the samples =data.frame= contains a column describing a sample's phenotype.  In this case:
+
+* Phenotype
+
+#+begin_src R :ravel 
+phenotype(as11) <- "cc"
+as11
+#+end_src
+
+* Allele codes
+Genotype data is stored in a (compressed) format with 1=AA, 2=AB and
+3=BB genotypes.  If you wish to merge two datasets, you need to know
+what each code corresponds to.  This information should be stored in a
+pair of columns in the =snps= slot of the object.  The first member
+should show the base (A, C, G or T) corresponding to an AA homozygote,
+and the second the base corresponding to a BB homozygote.  =aSnpStats=
+functions can try and guess which columns might be storing this
+information, but it is safer to specify explicitly.
+
+#+begin_src R :ravel 
+snps(as11) <- cbind(snps(as11),a1="C",a2="G")
+# set the allele codes
+alleles(as11) <- c("a1","a2")
+head(snps(as11))
+# check the allele codes
+alleles(as11)
+as11
+#+end_src
+
+* Examples of use
+
+The advantage of using =annotSnpStats= is perhaps best seen using some
+example data from the =snpStats= package to define some new
+=aSnpMatrix= objects and play with them.
+
 ** Access annotation objects
 
 #+begin_src R :ravel 
@@ -72,11 +110,13 @@ summary(as11)
 
 However, certain =snpStats= functions do not use the S4 interface, and
 inheritance then gets a bit messed up.  In that case, you may need to
-explicity extract the =SnpMatrix= object.  For example, to use
+explicity extract the =SnpMatrix= object.  This can be done with =as(,Class="SnpMatrix")=
+or, for convenience, use =sm()=
+For example, to use
 snpStats's =ld= function:
 
 #+begin_src R :ravel 
-ld(as(as11,"SnpMatrix"),depth=5,stats="R.squared")
+ld(sm(as11)[1:5,1:5],depth=3,stats="R.squared")
 #+end_src
 
 ** Subsetting
@@ -102,34 +142,15 @@ i2 <- 21:40
 j2 <- 101:200
 as12 <- new("aSnpMatrix",
                  .Data=Autosomes[i1,j2],
-                 snps=Asnps[j2,,drop=FALSE],
+                 snps=cbind(Asnps[j2,,drop=FALSE],a1="C",a2="G"),
                  samples=subject.data[i1,])
 as21 <- new("aSnpMatrix",
                  .Data=Autosomes[i2,j1],
-                 snps=Asnps[j1,,drop=FALSE],
+                 snps=cbind(Asnps[j1,,drop=FALSE],a1="C",a2="G"),
                  samples=subject.data[i2,])
 
 cbind2(as11,as12)
 rbind2(as11,as21)
-#+end_src
-
-* Allele codes
-Genotype data is stored in a (compressed) format with 1=AA, 2=AB and
-3=BB genotypes.  If you wish to merge two datasets, you need to know
-what each code corresponds to.  This information should be stored in a
-pair of columns in the =snps= slot of the object.  The first member
-should show the base (A, C, G or T) corresponding to an AA homozygote,
-and the second the base corresponding to a BB homozygote.  =aSnpStats=
-functions can try and guess which columns might be storing this
-information, but it is safer to specify explicitly.
-
-#+begin_src R :ravel 
-snps(asub) <- cbind(snps(asub),a1="C",a2="G")
-# set the allele codes
-alleles(asub) <- c("a1","a2")
-head(snps(asub))
-# check the allele codes
-alleles(asub)
 #+end_src
 
 * Other functions

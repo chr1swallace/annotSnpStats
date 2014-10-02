@@ -1,23 +1,24 @@
-% Created 2014-09-25 Thu 20:36
+% Created 2014-10-01 Wed 13:00
 \documentclass[11pt]{article}
-\usepackage{amsmath}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
 \usepackage{fixltx2e}
 \usepackage{graphicx}
 \usepackage{longtable}
 \usepackage{float}
 \usepackage{wrapfig}
-\usepackage{soul}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
 \usepackage{textcomp}
 \usepackage{marvosym}
 \usepackage{wasysym}
-\usepackage{latexsym}
 \usepackage{amssymb}
-\usepackage{amstext}
 \usepackage{hyperref}
 \tolerance=1000
 \usepackage{fullpage}
 \author{Chris Wallace}
-\date{2013-05-22 Wed}
+\date{\today}
 \title{annotSnpStats: a package for annotated SnpMatrix objects}
 \hypersetup{
   pdfkeywords={},
@@ -40,19 +41,20 @@ specific and sample (row) specific information.  Subsetting, binding
 etc can then be carried out keeping this additional information
 aligned.
 
-Various utility functions have been added which aim to make the
-manipulation and merging of two or more genotype datasets as painless
-and as accurate as possible.
+If you don't know what the \texttt{snpStats} package does, then this package
+is unlikely to be of use.  But if you use \texttt{snpStats}, then, hopefully,
+annotSnpStats will make lots of things easier.  Various utility
+functions have been added which aim to make the manipulation and
+merging of two or more genotype datasets as painless and as accurate
+as possible.
 
-\section{Examples}
+\section{Basic data structure}
 \label{sec-2}
 
-The advantage of using \texttt{annotSnpStats} is perhaps best seen using some
-example data from the \texttt{snpStats} package to define some new
-\texttt{aSnpMatrix} objects and play with them.
+aSnpMatrix objects consist, at a minimum, of a data matrix
+(\texttt{(X)SnpMatrix}), and row-wise sample information \texttt{data.frame} and and
+column-wise SNP information \texttt{data.frame}.
 
-\subsection{Create new objects}
-\label{sec-2-1}
 <<>>=
 library(snpStats)
 library(annotSnpStats)
@@ -71,8 +73,47 @@ as11 <- new("aSnpMatrix",
 as11
 @ %def
 
+Optionally, you can set a \texttt{phenotype()} which records which column of
+the samples \texttt{data.frame} contains a column describing a sample's phenotype.  In this case:
+
+\section{Phenotype}
+\label{sec-3}
+
+<<>>=
+phenotype(as11) <- "cc"
+as11
+@ %def
+
+\section{Allele codes}
+\label{sec-4}
+Genotype data is stored in a (compressed) format with 1=AA, 2=AB and
+3=BB genotypes.  If you wish to merge two datasets, you need to know
+what each code corresponds to.  This information should be stored in a
+pair of columns in the \texttt{snps} slot of the object.  The first member
+should show the base (A, C, G or T) corresponding to an AA homozygote,
+and the second the base corresponding to a BB homozygote.  \texttt{aSnpStats}
+functions can try and guess which columns might be storing this
+information, but it is safer to specify explicitly.
+
+<<>>=
+snps(as11) <- cbind(snps(as11),a1="C",a2="G")
+# set the allele codes
+alleles(as11) <- c("a1","a2")
+head(snps(as11))
+# check the allele codes
+alleles(as11)
+as11
+@ %def
+
+\section{Examples of use}
+\label{sec-5}
+
+The advantage of using \texttt{annotSnpStats} is perhaps best seen using some
+example data from the \texttt{snpStats} package to define some new
+\texttt{aSnpMatrix} objects and play with them.
+
 \subsection{Access annotation objects}
-\label{sec-2-2}
+\label{sec-5-1}
 
 <<>>=
 head(snps(as11))
@@ -80,7 +121,7 @@ head(samples(as11))
 @ %def
 
 \subsection{Use in place of regular SnpMatrix objects}
-\label{sec-2-3}
+\label{sec-5-2}
 
 All \texttt{snpStats} S4 methods should work with \texttt{aSnpMatrix} objects
 
@@ -90,15 +131,17 @@ summary(as11)
 
 However, certain \texttt{snpStats} functions do not use the S4 interface, and
 inheritance then gets a bit messed up.  In that case, you may need to
-explicity extract the \texttt{SnpMatrix} object.  For example, to use
+explicity extract the \texttt{SnpMatrix} object.  This can be done with \texttt{as(,Class}"SnpMatrix")=
+or, for convenience, use \texttt{sm()}
+For example, to use
 snpStats's \texttt{ld} function:
 
 <<>>=
-ld(as(as11,"SnpMatrix"),depth=5,stats="R.squared")
+ld(sm(as11)[1:5,1:5],depth=3,stats="R.squared")
 @ %def
 
 \subsection{Subsetting}
-\label{sec-2-4}
+\label{sec-5-3}
 
 Subsetting subsets both the \texttt{SnpMatrix} and the annotation objects
 
@@ -113,7 +156,7 @@ nrow(samples(asub))
 @ %def
 
 \subsection{Binding}
-\label{sec-2-5}
+\label{sec-5-4}
 You can c/rbind \texttt{aSnpMatrix} objects using the S4 \texttt{cbind2} and
 \texttt{rbind2} methods:
 
@@ -122,39 +165,19 @@ i2 <- 21:40
 j2 <- 101:200
 as12 <- new("aSnpMatrix",
 		 .Data=Autosomes[i1,j2],
-		 snps=Asnps[j2,,drop=FALSE],
+		 snps=cbind(Asnps[j2,,drop=FALSE],a1="C",a2="G"),
 		 samples=subject.data[i1,])
 as21 <- new("aSnpMatrix",
 		 .Data=Autosomes[i2,j1],
-		 snps=Asnps[j1,,drop=FALSE],
+		 snps=cbind(Asnps[j1,,drop=FALSE],a1="C",a2="G"),
 		 samples=subject.data[i2,])
 
 cbind2(as11,as12)
 rbind2(as11,as21)
 @ %def
 
-\section{Allele codes}
-\label{sec-3}
-Genotype data is stored in a (compressed) format with 1=AA, 2=AB and
-3=BB genotypes.  If you wish to merge two datasets, you need to know
-what each code corresponds to.  This information should be stored in a
-pair of columns in the \texttt{snps} slot of the object.  The first member
-should show the base (A, C, G or T) corresponding to an AA homozygote,
-and the second the base corresponding to a BB homozygote.  \texttt{aSnpStats}
-functions can try and guess which columns might be storing this
-information, but it is safer to specify explicitly.
-
-<<>>=
-snps(asub) <- cbind(snps(asub),a1="C",a2="G")
-# set the allele codes
-alleles(asub) <- c("a1","a2")
-head(snps(asub))
-# check the allele codes
-alleles(asub)
-@ %def
-
 \section{Other functions}
-\label{sec-4}
+\label{sec-6}
 
 A few other handy functions are included which should make joining
 multiple aSnpMatrix objects easier. See the individual help

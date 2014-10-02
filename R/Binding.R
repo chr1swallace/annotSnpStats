@@ -36,8 +36,8 @@ setMethod("rbind2",  ## bind samples
                stop("SNP names mismatch")
             samples.colmatch <- intersect(colnames(x@samples),colnames(y@samples))
             ## missing alleles
-            hasAlleles.x <- suppressWarnings(is.null(alleles(x)))
-            hasAlleles.y <- suppressWarnings(is.null(alleles(y)))
+            hasAlleles.x <- suppressWarnings(!is.null(alleles(x)))
+            hasAlleles.y <- suppressWarnings(!is.null(alleles(y)))
             if(hasAlleles.x && hasAlleles.y && any(is.na(x@snps[,alleles(x)])))
               x <- alleles.update(x,y)
             if(hasAlleles.x && hasAlleles.y && any(is.na(y@snps[,alleles(y)])))
