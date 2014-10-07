@@ -2,6 +2,7 @@
 
 export("alleles<-")
 export("phenotype<-")
+export("samples<-")
 export("snps<-")
 export(add.samples)
 export(add.snps)

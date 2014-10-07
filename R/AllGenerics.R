@@ -103,6 +103,20 @@ setGeneric("samples",
              return(x@samples)
            })
 
+##' @export
+##' @rdname accessors
+##' @details \code{samples()} extracts the samples \code{data.frame}
+##' from an object of class aSnpMatrix
+setGeneric("samples<-",
+           def=function(x,value) {
+             if(!is.data.frame(value))
+               stop("samples must be a data.frame")
+             if(!identical(rownames(x),rownames(value)))
+               stop("samples must have identical nrow and rownames to x")
+             x@samples <- value
+             return(x)
+           })
+
 
 
 

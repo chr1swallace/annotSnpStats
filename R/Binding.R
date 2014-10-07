@@ -53,12 +53,12 @@ setMethod("rbind2",  ## bind samples
                 .Data=rbind2(as(x,"SnpMatrix"),
                   as(y,"SnpMatrix")),
                 snps=x@snps,
-                samples=rbind(x@samples[,samples.colmatch,drop=FALSE],
-                  y@samples[,samples.colmatch,drop=FALSE]),
+                samples=rbind(fix.factors(x@samples[,samples.colmatch,drop=FALSE]),
+                  fix.factors(y@samples[,samples.colmatch,drop=FALSE])),
                 phenotype=x@phenotype,
                 alleles=x@alleles)})
 
-alleles.update <- function(x,y) {
+alleles.update <- function(x,y,verbose=TRUE) {
   x.missing <- apply(is.na(x@snps[,alleles(x)]),1,any)
   y.missing <- apply(is.na(y@snps[,alleles(y)]),1,any)
   message("Missing alleles found.")
@@ -80,6 +80,13 @@ alleles.update <- function(x,y) {
   return(x)
 }
 
+fix.factors <- function(x) {
+  factors <- which(sapply(x,is.factor))
+  if(length(factors))
+    for(i in factors)
+      x[,i] <- as.character(x[,i])
+  return(x)
+}
 ##' @rdname binding
 ##' @export
 setMethod("rbind2", ## bind samples
@@ -92,7 +99,8 @@ setMethod("rbind2", ## bind samples
                 .Data=rbind2(as(x,"XSnpMatrix"),
                   as(y,"XSnpMatrix")),
                 snps=x@snps,
-                samples=rbind(x@samples[,samples.colmatch,drop=FALSE],y@samples[,samples.colmatch,drop=FALSE]),
+                samples=rbind(fix.factors(x@samples[,samples.colmatch,drop=FALSE]),
+                  fix.factors(y@samples[,samples.colmatch,drop=FALSE])),
                 phenotype=x@phenotype,
                 alleles=x@alleles,
                 diploid=c(x@diploid,y@diploid))

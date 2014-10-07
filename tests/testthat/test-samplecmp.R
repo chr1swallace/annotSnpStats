@@ -1,16 +1,17 @@
 data(for.exercise, package="snpStats")
-n <- 500
+n <- 700
 m <- 20000
 
 context("dups")
 
-x <- snps.10[1:n,1:m]
-y <- snps.10[1:(2*n),1:m]
-rownames(x) <- paste("x",1:n,sep="")
-rownames(y) <- paste("y",1:(2*n),sep="")
+x <- snps.10[c(1:n,1:n),1:m]
+y <- snps.10[c(1:1000,1:1000),1:m]
+rownames(x) <- paste("x",make.unique(rownames(x)),sep="")
+rownames(y) <- paste("y",make.unique(rownames(y)),sep="")
 
 test_that("dups works", {
-  kk <- dups(x,y,tol=10)
+  system.time(kk.slow <- dups(x,y,tol=10,stopatone=FALSE))
+  system.time(kk.quick <- dups(x,y,tol=10,stopatone=TRUE))
   expect_true(nrow(kk) == n)
 })
           

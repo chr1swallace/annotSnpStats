@@ -140,11 +140,12 @@ mismatch.count <- function(x,y=NULL,tol=ncol(x)/100) {
 ##' @param type by default, dups compares only homs vs hets, to allow
 ##' for differently labelled alleles.  Set type="all" to allow the two
 ##' kinds of homozygote genotypes to count as a mismatch
+##' @param stopatone if TRUE, assume each sample in x can have at most one match in y, and vice versa. This makes things faster, and should be safe assuming x and y themselves contain no internal duplicates so is set to TRUE by default, but set it to FALSE if you want to catch multiple matches.
 ##' @return a matrix, with four columns: index of dup in x, index of
 ##' dup in y, number of mismatches, number of comparisons
 ##' @author Chris Wallace
 ##' @export
-dups <- function(x,y,tol=ncol(x)/50,type=c("hethom","all")) {
+dups <- function(x,y,tol=ncol(x)/50,type=c("hethom","all"),stopatone=TRUE) {
   if(!identical(colnames(x), colnames(y)))
     stop("x and y need identical snps or sample comparison will be meaningless")
   type <- switch(match.arg(type),
@@ -152,7 +153,8 @@ dups <- function(x,y,tol=ncol(x)/50,type=c("hethom","all")) {
                  hethom=1)
   
   pBar <- txtProgressBar( min = 0, max = nrow(x) - 1, style = 3 )
-  ret <- .Call("countdiffs", x@.Data, y@.Data, as.integer(min(tol,1)), as.integer(type), pBar,               
+  ret <- .Call("countdiffs", x@.Data, y@.Data, as.integer(max(tol,0)),
+               as.integer(type), as.integer(stopatone),pBar,               
                PACKAGE="annotSnpStats")
   cat("\n") # end progress bar
   colnames(ret) <- c("index.x","index.y","mismatch","total")
@@ -305,7 +307,7 @@ g.class <- function(x,y) {
 ##' @export
 ##' @return  new annotSnpStats object derived from x, with alleles switched to match those in y
 ##' @author Chris Wallace
-align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01) {
+align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01,known.dups=NULL) {
   if(!identical(colnames(x), colnames(y)))
     stop("x and y should contain the same SNPs in the same order")
   if(any(is.na(x@snps[,alleles(x)])) || any(is.na(y@snps[,alleles(y)]))) {
@@ -364,7 +366,27 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01) {
 
     rdiff <- x.cs[,"RAF"] - y.cs[,"RAF"]
     sw2 <- ifelse(abs(x.cs[,"RAF"] - y.cs[,"RAF"]) < abs(1 - x.cs[,"RAF"] - y.cs[,"RAF"]), FALSE, TRUE)
-    sw2[ abs(x.cs[,"MAF"]-0.5)<mafdiff ] <- NA
+    too.close <- abs(x.cs[,"MAF"]-0.5)<mafdiff
+    if(any(too.close) & !is.null(known.dups)) {
+      message(length(ind)," using known dups to resolve ",sum(too.close)," cases close to 50% MAF.")
+      m1 <- match(known.dups[[1]],rownames(x))
+      m2 <- match(known.dups[[2]],rownames(y))
+      if(length(wh <- which(duplicated(m1)))) {
+        m1 <- m1[-wh]
+        m2 <- m2[-wh]
+      } 
+      if(length(wh <- which(duplicated(m2)))) {
+        m1 <- m1[-wh]
+        m2 <- m2[-wh]
+      } 
+      cor.asis <- sapply(which(too.close), function(i) cor(as(x[m1,ind[i]],"numeric"),
+                                                           as(y[m2,ind[i]],"numeric"),
+                                                           use="pair"))
+      cor.asis[ cor.asis > -0.8 & cor.asis < 0.8 ] <- NA # NA unless correlation is pretty strong
+      sw2[too.close] <- cor.asis < 0
+    } else {
+      sw2[ too.close ] <- NA
+    }
     message(sum(is.na(sw2))," SNPs not resolvable (MAF too close to 0.5).")
     sw[ind] <- sw2
   }

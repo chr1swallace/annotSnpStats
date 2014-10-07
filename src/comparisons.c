@@ -57,10 +57,10 @@
 
 /* } */
 
-SEXP countdiffs(SEXP Rx, SEXP Ry, SEXP maxDiff, SEXP Rtype, SEXP pBar) {
+SEXP countdiffs(SEXP Rx, SEXP Ry, SEXP maxDiff, SEXP Rtype, SEXP Rquick, SEXP pBar) {
 
   int nprotect=0;
-  SEXP Rdim, Rcounts;
+  SEXP Rdimx, Rdimy, Rcounts;
 
   SEXP utilsPackage, percentComplete;
   PROTECT(utilsPackage = eval(lang2(install("getNamespace"), ScalarString(mkChar("utils"))), R_GlobalEnv));
@@ -68,15 +68,15 @@ SEXP countdiffs(SEXP Rx, SEXP Ry, SEXP maxDiff, SEXP Rtype, SEXP pBar) {
   nprotect+=2;
   int *rPercentComplete = INTEGER(percentComplete);
  
-  PROTECT(Rdim = getAttrib(Rx, R_DimSymbol));
+  PROTECT(Rdimx = getAttrib(Rx, R_DimSymbol));
   nprotect++;
-  int nx = INTEGER(Rdim)[0];
-  int mx = INTEGER(Rdim)[1];
+  int nx = INTEGER(Rdimx)[0];
+  int mx = INTEGER(Rdimx)[1];
 
-  PROTECT(Rdim = getAttrib(Ry, R_DimSymbol));
+  PROTECT(Rdimy = getAttrib(Ry, R_DimSymbol));
   nprotect++;
-  int ny = INTEGER(Rdim)[0];
-  int my = INTEGER(Rdim)[1];
+  int ny = INTEGER(Rdimy)[0];
+  int my = INTEGER(Rdimy)[1];
 
   if(mx != my)
     error("x and y need equal number of columns");
@@ -84,8 +84,11 @@ SEXP countdiffs(SEXP Rx, SEXP Ry, SEXP maxDiff, SEXP Rtype, SEXP pBar) {
   // maximum number of mismatches allowed
   int maxdiff = INTEGER(maxDiff)[0];
    
-  // type of things to count
+  // type of things to count 
   int type = INTEGER(Rtype)[0];
+
+  // be quick by assuming <=1 match per sample
+  int quick = INTEGER(Rquick)[0];
 
   // pointers to x, y
   unsigned char *x = RAW(Rx);
@@ -93,16 +96,30 @@ SEXP countdiffs(SEXP Rx, SEXP Ry, SEXP maxDiff, SEXP Rtype, SEXP pBar) {
 
   // return indices of samples with < tol mismatches, number of mismatches
   int M = nx;
-  if(M < ny)
+  if(M > ny)
     M = ny;
-  int counts[M*8];
+  int MM=M;
+  if(quick == 0)
+    MM=M*4; // worst case: at maximum, each sample in x or y may have four matches in y or x
+  int xindex[MM], yindex[MM], mismatch[MM], total[MM];
   
   int i=0, j=0, ii=0, jj=0, k=0;
 
+  // record matches
+  int xflag[nx], yflag[ny];
+  for(i=0; i<nx; i++)
+    xflag[i]=0;
+  for(i=0; i<ny; i++)
+    yflag[i]=0;
+
   int ij=0;
   for(i=0; i<nx; i++) { // index rows of x
+    if(xflag[i]==1) // already matched
+      continue;
     for(j=0; j<ny; j++) { // index rows of y, ij indexes counts
-      int nonzero = 0, mismatch=0;
+      if(yflag[j]==1)
+	continue;
+      int nonzero = 0, different=0;
       
       for(k=0, ii=i, jj=j; k<mx; k++, ii+=nx, jj+=ny) { // index elements of each row in x, y
 	int xx=(int) x[ii];
@@ -110,21 +127,25 @@ SEXP countdiffs(SEXP Rx, SEXP Ry, SEXP maxDiff, SEXP Rtype, SEXP pBar) {
 	if( xx!=0 && yy!=0) {
 	  nonzero++;
 	  if((type==0 && xx!=yy) || (type==1 && xx==2 && yy!=2) || (type==1 && xx!=2 && yy==2)) {
-	    mismatch++;
-	    if(mismatch == maxdiff)
+	    different++;
+	    if(different == maxdiff)
 	      break;
 	  }
 	}
       }
 
-      if(mismatch == maxdiff) // different samples
+      if(different == maxdiff) // different samples
 	continue;
 
       // low mismatch - store
-      counts[ij] = i;
-      counts[ij + M] = j;
-      counts[ij + 2*M] = mismatch;
-      counts[ij + 3*M] = nonzero;
+      xindex[ij] = i+1; // switch to 1-based
+      yindex[ij] = j+1; // switch to 1-based
+      mismatch[ij] = different;
+      total[ij] = nonzero;
+      if(quick==1) {
+	xflag[i] = 1;
+	yflag[j] = 1;
+      }
       ij++;
     }
    *rPercentComplete = i; //this value increments
@@ -135,9 +156,12 @@ SEXP countdiffs(SEXP Rx, SEXP Ry, SEXP maxDiff, SEXP Rtype, SEXP pBar) {
   PROTECT(Rcounts = allocMatrix(INTSXP, ij, 4));
   nprotect++;
   int *pRcounts = INTEGER(Rcounts);
-  for(i=0; i<ij; i++)
-    for(j=0; j<4; j++)
-      pRcounts[i + j*ij] = counts[i + j*M];
+  for(i=0; i<ij; i++) {
+    pRcounts[i] = xindex[i];
+    pRcounts[i+ij] = yindex[i];
+    pRcounts[i+2*ij] = mismatch[i];
+    pRcounts[i+3*ij] = total[i];
+  }
 	
   UNPROTECT(nprotect);
   return(Rcounts);

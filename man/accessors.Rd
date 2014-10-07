@@ -6,6 +6,7 @@
 \alias{phenotype<-}
 \alias{phenotype<-,aSnpMatrix}
 \alias{samples}
+\alias{samples<-}
 \alias{snps}
 \alias{snps<-}
 \title{Accessors}
@@ -23,6 +24,8 @@ snps(x)
 snps(x) <- value
 
 samples(x)
+
+samples(x) <- value
 }
 \arguments{
 \item{x}{object of class annotSnpStats}
@@ -49,6 +52,9 @@ length 2, giving the columns names of the data.frame in the
 
 \code{snps()} extracts the snps \code{data.frame} from an
 object of class aSnpMatrix
+
+\code{samples()} extracts the samples \code{data.frame}
+from an object of class aSnpMatrix
 
 \code{samples()} extracts the samples \code{data.frame}
 from an object of class aSnpMatrix
