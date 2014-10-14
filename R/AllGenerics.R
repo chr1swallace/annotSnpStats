@@ -15,16 +15,12 @@
 ##' @rdname accessors
 ##' @keywords methods
 ##' @examples
-##' data(for.exercise)
-##' X <- new("aSnpMatrix",
-##'          .Data = snps.10[1:10,1:5],
-##'          snps=snp.support[1:5,],
-##'          samples=subject.support[1:10,])
-##' X
+##' X <- example.data(10,5)
+##' phenotype(X)
 ##' phenotype(X) <- "cc"
-##' alleles(X) <- c("A1","A2")
-##' X
-##' summary(X)
+##' alleles(X)
+##' snps(X)
+##' samples(X)
 setGeneric("alleles",
            def=function(x) {
              if(length(x@alleles))

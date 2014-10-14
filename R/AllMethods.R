@@ -219,7 +219,7 @@ setReplaceMethod("dimnames",
 setMethod("switch.alleles",
           signature=c(x="aSnpMatrix",snps="ANY"),
           function(x, snps) {
-            x@.Data=switch.alleles(new("SnpMatrix",x@.Data), snps)
+            x@.Data=switch.alleles(as(x,"SnpMatrix"), snps)
             anames <- alleles(x)
             x@snps[snps,anames] <- x@snps[snps,rev(anames)]
             return(x)
@@ -229,7 +229,7 @@ setMethod("switch.alleles",
 setMethod("switch.alleles",
           signature=c(x="aXSnpMatrix",snps="ANY"),
           function(x, snps) {
-            x@.Data=switch.alleles(new("SnpMatrix",x@.Data), snps)
+            x@.Data=switch.alleles(as(x,"XSnpMatrix"), snps)
             anames <- alleles(x)
             x@snps[snps,anames] <- x@snps[snps,rev(anames)]
             return(x)

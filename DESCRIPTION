@@ -3,14 +3,12 @@ Title: Annotated SnpMatrix objects
 Description: Simple class to allow SnpMatrix objects to be manipulated together
     with snp annotation files
 Version: 1.0
-Maintainer: Chris Wallace <cew54@cam.ac.uk>
-Author: Chris Wallace <cew54@cam.ac.uk>
 Authors@R: c(person("Chris", "Wallace", role=c("aut","cre"), email =
-    "chris.wallace@cimr.cam.ac.uk"))
+    "cew54@cam.ac.uk"))
+Imports:
+    methods
 Depends:
     snpStats
 Suggests:
     testthat
-Imports:
-    methods
 License: GPL

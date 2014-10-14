@@ -16,7 +16,7 @@ sample.id <- function(x,col.x) {
 ##' Match snps in two aSnpMatrix objects
 ##'
 ##' Extract indices of overlapping SNPs in two aSnpMatrix objects.  By
-##' default, match is on \code{rownames(x@@snps)}, \code{rownames(y@@snps)}.
+##' default, match is on \code{rownames(snps(x))}, \code{rownames(snps(y))}.
 ##' @title snp.match
 ##' @param x aSnpMatrix object
 ##' @param y aSnpMatrix object
@@ -30,14 +30,17 @@ sample.id <- function(x,col.x) {
 ##' \item{y}{indices of matching SNPs in y}
 ##'
 ##' }
+##' @example examples/match.R
 ##' @author Chris Wallace
 ##' @export
 snp.match <- function(x,y,col.x=0,col.y=0) {
   id.x <- snp.id(x,col.x)
   id.y <- snp.id(y,col.y)
   ids <- intersect(id.x,id.y)
-  if(!length(ids))
-    stop("no overlapping SNPs found")
+  if(!length(ids)) {
+    message("no overlapping SNPs found")
+    return(NULL)
+  }
   m.x <- match(ids,id.x)
   m.y <- match(ids,id.y)
   return(list(x=m.x, y=m.y))
@@ -60,6 +63,7 @@ snp.match <- function(x,y,col.x=0,col.y=0) {
 ##' \item{y}{indices of matching samples in y}
 ##'
 ##' }
+##' @example examples/match.R
 ##' @author Chris Wallace
 ##' @export
 sample.match <- function(x,y,col.x=0,col.y=0) {
@@ -75,54 +79,7 @@ sample.match <- function(x,y,col.x=0,col.y=0) {
   m.y <- match(ids,id.y)
   return(list(x=m.x, y=m.y))
 }
-##' Count mismatches between all pairs of individuals
-##'
-##' @title mismatch.count.all
-##' @inheritParams dups
-##' @return a matrix, nrow(x) x nrow(y) with each entry the number of
-##' mismatches if <tol, or tol
-##' @author Chris Wallace
-##' @export
-mismatch.count.all <- function(x,y=NULL,tol=ncol(x)/100) {
-  if(!identical(colnames(x), colnames(y)))
-    stop("x and y need identical snps or sample comparison will be meaningless")
-  
-  counts <- matrix(as.integer(0),nrow=nrow(y),ncol=nrow(x),dimnames=list(rownames(y),rownames(x)))
-  
-  ret <- .C("samplediffall_c", x@.Data, y@.Data, counts=counts, as.integer(tol),
-            nrow(x@.Data), ncol(x@.Data),
-            nrow(y@.Data), ncol(y@.Data),
-            PACKAGE="annotSnpStats")
-  ## .Call("countmatches", Rx=x@.Data, Ry=y@.Data,
-  ##   PACKAGE="annotSnpStats"))
-  return(ret[["counts"]])
-  
-}
-##' Count mismatches between specified pairs of individuals
-##'
-##' @title mismatch.count
-##' @inheritParams dups
-##' @return a matrix, nrow(x) x nrow(y) with each entry the number of
-##' mismatches if <tol, or tol
-##' @author Chris Wallace
-##' @export
-mismatch.count <- function(x,y=NULL,tol=ncol(x)/100) {
-  if(!identical(colnames(x), colnames(y)))
-    stop("x and y need identical snps or sample comparison will be meaningless")
-   if(!identical(rownames(x), rownames(y)))
-    stop("x and y need identical samples for pairwise comparison.  Did you mean mismatch.count.all?")
-  
-  counts <- numeric(nrow(x))
-  names(counts) <- rownames(x)
-  
-  ret <- .C("samplediff_c", x@.Data, y@.Data, counts=counts, as.integer(tol),
-            nrow(x@.Data), ncol(x@.Data),
-            PACKAGE="annotSnpStats")
-  ## .Call("countmatches", Rx=x@.Data, Ry=y@.Data,
-  ##   PACKAGE="annotSnpStats"))
-  return(ret[["counts"]])
-  
-}
+
 ##' Find indices of possible sample duplications between two aSnpStats objects
 ##'
 ##' Each pair of samples from x and y are compared in turn.  If the
@@ -140,9 +97,18 @@ mismatch.count <- function(x,y=NULL,tol=ncol(x)/100) {
 ##' @param type by default, dups compares only homs vs hets, to allow
 ##' for differently labelled alleles.  Set type="all" to allow the two
 ##' kinds of homozygote genotypes to count as a mismatch
-##' @param stopatone if TRUE, assume each sample in x can have at most one match in y, and vice versa. This makes things faster, and should be safe assuming x and y themselves contain no internal duplicates so is set to TRUE by default, but set it to FALSE if you want to catch multiple matches.
+##' @param stopatone if TRUE, assume each sample in x can have at most
+##' one match in y, and vice versa. This makes things faster, and
+##' should be safe assuming x and y themselves contain no internal
+##' duplicates so is set to TRUE by default, but set it to FALSE if
+##' you want to catch multiple matches.
 ##' @return a matrix, with four columns: index of dup in x, index of
 ##' dup in y, number of mismatches, number of comparisons
+##' @examples
+##' ## example data where samples 6:10 in x are the same as 1:5 in y
+##' x <- example.data(1:10,1:500)
+##' y <- example.data(6:15,1:500)
+##' dups(x,y)
 ##' @author Chris Wallace
 ##' @export
 dups <- function(x,y,tol=ncol(x)/50,type=c("hethom","all"),stopatone=TRUE) {
@@ -152,7 +118,7 @@ dups <- function(x,y,tol=ncol(x)/50,type=c("hethom","all"),stopatone=TRUE) {
                  all=0,
                  hethom=1)
   
-  pBar <- txtProgressBar( min = 0, max = nrow(x) - 1, style = 3 )
+  pBar <- txtProgressBar( min = 0, max = nrow(x) - 1, style = 1 )
   ret <- .Call("countdiffs", x@.Data, y@.Data, as.integer(max(tol,0)),
                as.integer(type), as.integer(stopatone),pBar,               
                PACKAGE="annotSnpStats")
@@ -175,9 +141,11 @@ dups <- function(x,y,tol=ncol(x)/50,type=c("hethom","all"),stopatone=TRUE) {
 ##' @param x annotSnpStats object
 ##' @param thr named character vector, see Details.
 ##' @examples
-##' data(for.exercise, package="snpStats")
+##' X<-example.data(1000,1000)
+##' X
 ##' ## find rare SNPs with high call rates that do not deviate from HWE
-##' snps.ok <- snp.qc(snps.10, thr=c(Call.rate=">0.99", MAF="<0.03", z.HWE="<3"))
+##' X.rare.qcpass <- snp.qc(X, thr=c(Call.rate=">0.99", MAF="<0.05", z.HWE="<3"))
+##' X.rare.qcpass
 ##' @return an annotSnpStats object with only SNPs that meet the criteria specified.
 ##' @author Chris Wallace
 ##' @export
@@ -206,20 +174,20 @@ snp.qc <- function(x, thr=c(Call.rate=">0.99", MAF=">0.03", z.HWE="<5")) {
   return(x[,which(snps.ok)])
 }
 
-complement <- function(str) {
-  str <- tolower(str)
-  str <- gsub("a","T",str)
-  str <- gsub("t","A",str)
-  str <- gsub("c","G",str)
-  str <- gsub("g","C",str)
-  return(str)
-}
+## complement <- function(str) {
+##   str <- tolower(str)
+##   str <- gsub("a","T",str)
+##   str <- gsub("t","A",str)
+##   str <- gsub("c","G",str)
+##   str <- gsub("g","C",str)
+##   return(str)
+## }
 
-arev <- function(str) {
-  ss <- strsplit(str,"/")
-  ss <- lapply(ss, rev)
-  sapply(ss, paste, collapse="/")  
-}
+## arev <- function(str) {
+##   ss <- strsplit(str,"/")
+##   ss <- lapply(ss, rev)
+##   sapply(ss, paste, collapse="/")  
+## }
 ##' Complement genotypes
 ##'
 ##' ie A/G -> T/C
@@ -258,6 +226,7 @@ g.rev <- function(x,sep="/") {
 ##' @param tt table of genotype counts
 ##' @param xind row indices
 ##' @param yind y indices
+##' @export
 ##' @return sum of numbers indexed by cbind(xind,yind)
 g.count <- function(tt,xind,yind) {
   ind <- cbind(xind,yind)
@@ -275,7 +244,19 @@ count.switches <- function(tt) {
            str.n=g.count(tt,genos,str.genos),
            revstr.n=g.count(tt,genos,revstr.genos)))
 }
-
+##' define possible allele switching classes
+##'
+##' @title g.class
+##' @param x vector of allele codes from dataset X
+##' @param y vector of allele codes from dataset Y, same length as x
+##' @return character vector of allele switching classes
+##' @export
+##' @examples
+##' alleles.X <- c(snp1="A/G",snp2="A/G",snp3="A/G",snp4="A/G",snp5="A/T",snp6="A/T")
+##' alleles.Y <- c(snp1="A/G",snp2="G/A",snp3="T/C",snp4="C/T",snp5="A/T",snp6="T/A")
+##' classes <- g.class(x=alleles.X,y=alleles.Y)
+##' cbind(alleles.X,alleles.Y,classes)
+##' @author Chris Wallace
 g.class <- function(x,y) {
   if(!identical(names(x),names(y)))
     stop("x and y must relate to same SNPs")
@@ -286,12 +267,16 @@ g.class <- function(x,y) {
   mat[,"comp"] <- x==g.complement(y)
   mat[,"revcomp"] <- x==g.rev(g.complement(y))
   indels <- x %in% c("I/D","D/I")
-  mat[indels,c("comp","revcomp")] <- FALSE
-  ret <- apply(mat,1,which)
-  ret[ sapply(ret,length)>1 ] <- "ambig"
-  nret <- sapply(ret,is.numeric)==TRUE
-  ret[ nret ] <- colnames(mat)[ unlist(ret[nret])]
-  ret <- unlist(ret)
+  if(any(indels))
+    mat[indels,c("comp","revcomp")] <- FALSE
+  ret <- character(nrow(mat))
+  rs <- rowSums(mat)
+  if(length(wh <- which(rs>1))) # ambiguity first
+    ret[wh] <- "ambig"  
+  if(length(wh <- which(rs==0))) # impossible
+    ret[wh] <- "impossible"
+  if(length(wh <- which(rs==1))) # impossible
+    ret[wh] <- colnames(mat)[ apply(mat[wh,,drop=FALSE],1,which) ]
   return(ret)
 }
 
@@ -304,6 +289,22 @@ g.class <- function(x,y) {
 ##' @param mafdiff SNPs with MAF within mafdiff of 0.5 will not be
 ##' aligned automatically.  This is of concern only for T/A and C/G
 ##' SNPs, which are not uniquely resolveable by allele codes.
+##' @param known.dups if duplicate samples exist, supply a list
+##' returned by running dups(x,y).  The alignment of genotypes in
+##' these duplicate samples will be used to inform alignment of
+##' genotypes in other samples.
+##' @examples
+##' x <- example.data(1:100,1:10)
+##' y <- example.data(101:200,1:10)
+##' ## switch columns 6:10
+##' y.switched <- switch.alleles(y,6:10)
+##' ## automatically switch back
+##' y.aligned <- align.alleles(y.switched,x,do.plot=TRUE)
+##' ## check by comparing counted allele frequencies for SNPs 1:5 and 6:10
+##' cbind(x=col.summary(x)[,"RAF"],
+##'       y=col.summary(y)[,"RAF"], 
+##'       y.switched=col.summary(y.switched)[,"RAF"],
+##'       y.aligned=col.summary(y.aligned)[,"RAF"])
 ##' @export
 ##' @return  new annotSnpStats object derived from x, with alleles switched to match those in y
 ##' @author Chris Wallace

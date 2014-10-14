@@ -3,7 +3,7 @@
 \alias{align.alleles}
 \title{align.alleles}
 \usage{
-align.alleles(x, y, do.plot = TRUE, mafdiff = 0.01)
+align.alleles(x, y, do.plot = TRUE, mafdiff = 0.01, known.dups = NULL)
 }
 \arguments{
 \item{x}{annotSnpStats object}
@@ -15,12 +15,30 @@ align.alleles(x, y, do.plot = TRUE, mafdiff = 0.01)
 \item{mafdiff}{SNPs with MAF within mafdiff of 0.5 will not be
 aligned automatically.  This is of concern only for T/A and C/G
 SNPs, which are not uniquely resolveable by allele codes.}
+
+\item{known.dups}{if duplicate samples exist, supply a list
+returned by running dups(x,y).  The alignment of genotypes in
+these duplicate samples will be used to inform alignment of
+genotypes in other samples.}
 }
 \value{
 new annotSnpStats object derived from x, with alleles switched to match those in y
 }
 \description{
 switch alleles in x to match order in y
+}
+\examples{
+x <- example.data(1:100,1:10)
+y <- example.data(101:200,1:10)
+## switch columns 6:10
+y.switched <- switch.alleles(y,6:10)
+## automatically switch back
+y.aligned <- align.alleles(y.switched,x,do.plot=TRUE)
+## check by comparing counted allele frequencies for SNPs 1:5 and 6:10
+cbind(x=col.summary(x)[,"RAF"],
+      y=col.summary(y)[,"RAF"],
+      y.switched=col.summary(y.switched)[,"RAF"],
+      y.aligned=col.summary(y.aligned)[,"RAF"])
 }
 \author{
 Chris Wallace

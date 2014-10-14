@@ -15,20 +15,15 @@
 ##' @keywords methods
 ##' @examples
 ##' ## load some example data from snpStats
-##' data(for.exercise)
-##' x <- new("aSnpMatrix",
-##'          .Data = snps.10[1:10,1:5],
-##'          snps=snp.support[1:5,],
-##'          samples=subject.support[1:10,])
-##' y <- new("aSnpMatrix",
-##'          .Data = snps.10[1:10,11:15],
-##'          snps=snp.support[11:15,],
-##'          samples=subject.support[1:10,])
+##' x <- example.data(10,5)
+##' y <- example.data(10,11:15)
 ##' # bind x and y columnwise
 ##' z <- cbind2(x,y)
+##' z
 ##' # add empty entries to x corresponding to the samples in x
 ##' # and the snps in y
 ##' z <- add.snps(x,y)
+##' z
 setMethod("rbind2",  ## bind samples
           signature=c(x="aSnpMatrix",y="aSnpMatrix"),
           function(x,y) {

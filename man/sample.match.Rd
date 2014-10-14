@@ -31,6 +31,12 @@ Match samples in two aSnpMatrix objects
 Extract indices of overlapping samples in two aSnpMatrix objects.  By
 default, match is on \code{rownames(x@samples)}, \code{rownames(y@snps)}.
 }
+\examples{
+x <- example.data(1:10,1:10)
+y <- example.data(6:15,6:15)
+snp.match(x,y)
+sample.match(x,y)
+}
 \author{
 Chris Wallace
 }

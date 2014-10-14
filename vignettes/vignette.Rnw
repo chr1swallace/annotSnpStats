@@ -1,4 +1,4 @@
-% Created 2014-10-01 Wed 13:00
+% Created 2014-10-14 Tue 12:34
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -53,35 +53,31 @@ as possible.
 
 aSnpMatrix objects consist, at a minimum, of a data matrix
 (\texttt{(X)SnpMatrix}), and row-wise sample information \texttt{data.frame} and and
-column-wise SNP information \texttt{data.frame}.
+column-wise SNP information \texttt{data.frame}.  The \texttt{example.data()}
+function can help you create test objects, but looking at the code
+inside the function can help you create objects from your own data
+too.
 
 <<>>=
-library(snpStats)
 library(annotSnpStats)
-data(testdata, package="snpStats")
-i1 <- 1:20
-j1 <- 1:100
+## see how an object can be created
+example.data()
 
-## initialize
-rownames(Asnps) <- colnames(Autosomes)
-rownames(Xsnps) <- colnames(Xchromosome)
-
-as11 <- new("aSnpMatrix",
-		 .Data=Autosomes[i1,j1],
-		 snps=Asnps[j1,,drop=FALSE],
-		 samples=subject.data[i1,])
-as11
+## create one
+X <- example.data(20,100)
+X
 @ %def
 
 Optionally, you can set a \texttt{phenotype()} which records which column of
-the samples \texttt{data.frame} contains a column describing a sample's phenotype.  In this case:
+the samples \texttt{data.frame} contains a column describing a sample's
+phenotype.  \texttt{example.data()} already does this, but you could
+change/set it thus:
 
 \section{Phenotype}
 \label{sec-3}
 
 <<>>=
-phenotype(as11) <- "cc"
-as11
+phenotype(X) <- "cc"
 @ %def
 
 \section{Allele codes}
@@ -96,13 +92,8 @@ functions can try and guess which columns might be storing this
 information, but it is safer to specify explicitly.
 
 <<>>=
-snps(as11) <- cbind(snps(as11),a1="C",a2="G")
 # set the allele codes
-alleles(as11) <- c("a1","a2")
-head(snps(as11))
-# check the allele codes
-alleles(as11)
-as11
+alleles(X) <- c("A1","A2")
 @ %def
 
 \section{Examples of use}
@@ -116,8 +107,8 @@ example data from the \texttt{snpStats} package to define some new
 \label{sec-5-1}
 
 <<>>=
-head(snps(as11))
-head(samples(as11))
+head(snps(X))
+head(samples(X))
 @ %def
 
 \subsection{Use in place of regular SnpMatrix objects}
@@ -126,7 +117,7 @@ head(samples(as11))
 All \texttt{snpStats} S4 methods should work with \texttt{aSnpMatrix} objects
 
 <<>>=
-summary(as11)
+summary(X)
 @ %def
 
 However, certain \texttt{snpStats} functions do not use the S4 interface, and
@@ -137,7 +128,7 @@ For example, to use
 snpStats's \texttt{ld} function:
 
 <<>>=
-ld(sm(as11)[1:5,1:5],depth=3,stats="R.squared")
+ld(sm(X)[1:5,1:5],depth=3,stats="R.squared")
 @ %def
 
 \subsection{Subsetting}
@@ -146,12 +137,12 @@ ld(sm(as11)[1:5,1:5],depth=3,stats="R.squared")
 Subsetting subsets both the \texttt{SnpMatrix} and the annotation objects
 
 <<>>=
-asub <- as11[1:3,1:5]
-dim(as11)
+asub <- X[1:3,1:5]
+dim(X)
 dim(asub)
-nrow(snps(as11))
+nrow(snps(X))
 nrow(snps(asub))
-nrow(samples(as11))
+nrow(samples(X))
 nrow(samples(asub))
 @ %def
 
@@ -161,46 +152,121 @@ You can c/rbind \texttt{aSnpMatrix} objects using the S4 \texttt{cbind2} and
 \texttt{rbind2} methods:
 
 <<>>=
-i2 <- 21:40
-j2 <- 101:200
-as12 <- new("aSnpMatrix",
-		 .Data=Autosomes[i1,j2],
-		 snps=cbind(Asnps[j2,,drop=FALSE],a1="C",a2="G"),
-		 samples=subject.data[i1,])
-as21 <- new("aSnpMatrix",
-		 .Data=Autosomes[i2,j1],
-		 snps=cbind(Asnps[j1,,drop=FALSE],a1="C",a2="G"),
-		 samples=subject.data[i2,])
+## add additional SNPs
+Xw <- example.data(20,101:200)
+cbind2(X,Xw)
 
-cbind2(as11,as12)
-rbind2(as11,as21)
+## add additional samples
+Xl <- example.data(21:40,100)
+rbind2(X,Xl)
 @ %def
 
-\section{Other functions}
+\section{Matching SNPs and samples between datasets}
 \label{sec-6}
 
-A few other handy functions are included which should make joining
-multiple aSnpMatrix objects easier. See the individual help
-pages for more detail on these.
+annotSnpStats was created primarily to make the manipulation and
+joining of multiple genetic datasets easier. Identifying which samples
+and SNPs are duplicated between datasets can be very important to
+avoid double counting.
 
-\begin{itemize}
-\item \texttt{dups} finds indices of possible sample duplications between two
-aSnpStats objects
-\item \texttt{mismatch.count} quickly counts mismatched genotypes between pairs
-of individuals
-\item \texttt{mismatch.count.all} quickly counts mismatched genotypes between all
-possible pairs of individuals - this can be slow!
-\item \texttt{sample.match} identifies indices of overlapping samples in two
-aSnpMatrix objects.  By default, match is on \texttt{rownames(x@samples)},
-\texttt{rownames(y@samples)}.
-\item \texttt{snp.match} identifies indices of overlapping samples in two
-aSnpMatrix objects.  By default, match is on \texttt{rownames(x@snps)},
-\texttt{rownames(y@snps)}.
-\item \texttt{snp.trim} drops SNPs from an annotSnpStats object according to SNP
-qc summary stats according to user specified limits
-\item \texttt{align.alleles} automates using \texttt{snpStats::switch.alleles} to ensure
-numeric annotation of genotypes uses a consistent code between two
-different datasets, essential to join up data.
-\end{itemize}
+\texttt{sample.match} identifies indices of overlapping samples in two
+  aSnpMatrix objects.  By default, match is on \texttt{rownames(samples(x))},
+  \texttt{rownames(samples(y))}.
+
+<<>>=
+sample.match(X,Xw) # should have matches
+sample.match(X,Xl) # should have no matches
+@ %def
+
+\texttt{snp.match} identifies indices of overlapping samples in two
+  aSnpMatrix objects.  By default, match is on \texttt{rownames(snps(x))},
+  \texttt{rownames(snps(y))}.
+
+<<>>=
+snp.match(X,Xw) # should have no matches
+snp.match(X,Xl) # should have matches
+@ %def
+
+However, often the same samples can appear in different datasets with
+different ids. \texttt{dups} finds indices of possible sample duplications
+between two aSnpStats objects by comparing genotypes. By default, two
+homozygote genotypes are called a match, regardless of which
+homozygotes they are.  This is useful if you are not sure that allele
+codes are comparable across the datasets.
+
+<<>>=
+Y <- example.data(30:11,100)
+dups(X,Y) # should match rows 11:20 of X with rows 20:11 of Y
+
+## now, reorder the allele labelling
+Y <- switch.alleles(Y,1:50)
+dups(X,Y) # should STILL match rows 11:20 of X with rows 1:10 of Y
+@ %def
+
+You can specify that matches take account of all genotype states, not just hethom (the default) by
+
+<<>>=
+dups(X,Y,type="all") # should find NO matches
+@ %def
+
+\section{Aligning alleles}
+\label{sec-7}
+
+Differences in allele coding is one of the most frustrating problems
+with dealing with genetic data from different sources.  One issue is
+simple differences in numeric coding, eg in \texttt{X} allele A is 1 and
+allele G is 2, whereas in \texttt{Y} allele A is 2 and G is 1.  I call this a
+code reverse.  However, sometimes alleles can be recorded from
+different strands, so in \texttt{Y} allele T is 1 and allele C is 2, this is
+a "complement".  Just for fun, we sometimes have both happen.
+
+<<>>=
+alleles.X <- c(snp1="A/G",snp2="A/G",snp3="A/G",snp4="A/G")
+alleles.Y <- c(snp1="A/G",snp2="G/A",snp3="T/C",snp4="C/T")
+classes <- g.class(x=alleles.X,y=alleles.Y)
+cbind(alleles.X,alleles.Y,classes)
+@ %def
+
+This is ok when a SNP is A/G, each class can be resolved.  But an
+A/T SNP is harder, because a reverse looks the same as a complement:
+
+<<>>=
+alleles.X <- c(snp1="A/T",snp2="A/T",snp3="A/T",snp4="A/T")
+alleles.Y <- c(snp1="A/T",snp2="T/A",snp3="T/A",snp4="A/T")
+classes <- g.class(x=alleles.X,y=alleles.Y)
+cbind(alleles.X,alleles.Y,classes)
+@ %def
+
+annotSnpStats first uses information from SNPs which have unambiguous
+allele codes.  If there are no strand switches amongst these SNPs, it
+assumes everything is on the same strand and resolveable.  A
+diagnostic plot is useful to check the alignment has worked.
+
+<<fig=TRUE>>=
+Y.aligned <- align.alleles(X,Y)
+@ %def
+
+Where there are strand switches, annotSnpStats uses allele frequencies
+to try and resolve the ambigous alignments, but this can only work
+where (a) sample sizes are reasonably large and from the same
+populations and (b) minor allele frequencies not too close to 0.5.
+Some inference can also be made if you have know duplicates between
+the two datasets, thus:
+
+<<fig=TRUE>>=
+XY.dups <- dups(X,Y)
+if(nrow(XY.dups)) {
+  Y.aligned <- align.alleles(X,Y,known.dups=XY.dups)
+} else {
+  Y.aligned <- align.alleles(X,Y)
+}
+@ %def
+
+
+\section{Other functions}
+\label{sec-8}
+
+\texttt{snp.trim} drops SNPs from an annotSnpStats object according to SNP
+qc summary stats according to user specified limits.  See help file.
 % Emacs 24.3.1 (Org mode 8.2.7c)
 \end{document}

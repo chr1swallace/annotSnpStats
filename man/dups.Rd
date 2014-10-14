@@ -3,7 +3,7 @@
 \alias{dups}
 \title{Find duplicate samples}
 \usage{
-dups(x, y, tol = ncol(x)/50, type = c("hethom", "all"))
+dups(x, y, tol = ncol(x)/50, type = c("hethom", "all"), stopatone = TRUE)
 }
 \arguments{
 \item{x}{aSnpStats object}
@@ -16,6 +16,12 @@ duplicate samples}
 \item{type}{by default, dups compares only homs vs hets, to allow
 for differently labelled alleles.  Set type="all" to allow the two
 kinds of homozygote genotypes to count as a mismatch}
+
+\item{stopatone}{if TRUE, assume each sample in x can have at most
+one match in y, and vice versa. This makes things faster, and
+should be safe assuming x and y themselves contain no internal
+duplicates so is set to TRUE by default, but set it to FALSE if
+you want to catch multiple matches.}
 }
 \value{
 a matrix, with four columns: index of dup in x, index of
@@ -32,6 +38,12 @@ the next pair.  If the total number of mismatched and non-missing
 genotypes is <tol, then the indices of the sample pair are stored,
 and returned together with the number of mismatches and the number
 of non-missing genotypes compared.
+}
+\examples{
+## example data where samples 6:10 in x are the same as 1:5 in y
+x <- example.data(1:10,1:500)
+y <- example.data(6:15,1:500)
+dups(x,y)
 }
 \author{
 Chris Wallace

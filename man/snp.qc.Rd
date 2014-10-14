@@ -26,9 +26,11 @@ threshold for keeping SNPs.  \code{z.HWE} is special, and applies
 to abs(z.HWE).
 }
 \examples{
-data(for.exercise, package="snpStats")
+X<-example.data(1000,1000)
+X
 ## find rare SNPs with high call rates that do not deviate from HWE
-snps.ok <- snp.qc(snps.10, thr=c(Call.rate=">0.99", MAF="<0.03", z.HWE="<3"))
+X.rare.qcpass <- snp.qc(X, thr=c(Call.rate=">0.99", MAF="<0.05", z.HWE="<3"))
+X.rare.qcpass
 }
 \author{
 Chris Wallace

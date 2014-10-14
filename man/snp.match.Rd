@@ -29,7 +29,13 @@ Match snps in two aSnpMatrix objects
 }
 \details{
 Extract indices of overlapping SNPs in two aSnpMatrix objects.  By
-default, match is on \code{rownames(x@snps)}, \code{rownames(y@snps)}.
+default, match is on \code{rownames(snps(x))}, \code{rownames(snps(y))}.
+}
+\examples{
+x <- example.data(1:10,1:10)
+y <- example.data(6:15,6:15)
+snp.match(x,y)
+sample.match(x,y)
 }
 \author{
 Chris Wallace
