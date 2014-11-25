@@ -399,16 +399,19 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01,known.dups=NULL) {
      sw2 <- x.alleles[ind]==g.rev(y.alleles[ind])
      sw[ind] <- sw2
    } 
-  
-  x@.Data[,is.na(sw)] <- as.raw("00")
-  x <- switch.alleles(x, which(sw))
-  x@snps[, alleles(x) ] <- y@snps[, alleles(y)]
+
+  if(any(is.na(sw)))
+    x@.Data[,is.na(sw)] <- as.raw("00")
+  if(length(wh <- which(sw))) {
+    x <- switch.alleles(x, wh)
+    x@snps[wh, alleles(x) ] <- y@snps[wh, alleles(y)]
+  }
 
   if(do.plot) {
     x.cs <- col.summary(x)
     y.cs <- col.summary(y)
-    plot(x.cs[,"RAF"], y.cs[,"RAF"],main="RAF after switching",xlab="x",ylab="y")
-    abline(0,1,col="grey20",lty=3)
+    plot(x.cs[,"RAF"], y.cs[,"RAF"],main="RAF after switching",xlab="x",ylab="y",pch="+")
+    abline(0,1,col="red",lty=1)
   }
   
   return(x)
