@@ -15,15 +15,14 @@ setClass("aSnpMatrix",
          representation(snps="data.frame",samples="data.frame",phenotype="character",alleles="character"),
          contains="SnpMatrix",
          validity=function(object) {
-           if(!identical(rownames(object@snps),colnames(object@.Data)))
+           if(ncol(object@.Data) && !identical(rownames(object@snps),colnames(object@.Data)))
              stop("rownames of snps object must exactly match colnames of SnpMatrix object")
-           if(!identical(rownames(object@samples),rownames(object@.Data)))
+           if(nrow(object@.Data) && !identical(rownames(object@samples),rownames(object@.Data)))
              stop("rownames of samples object must exactly match rownames of SnpMatrix object")
            if(length(object@phenotype) && !(object@phenotype %in% colnames(object@samples)))
              stop("phenotype must specify a column name of object@samples")
-           if(length(object@alleles) && (
-                      !all(object@alleles %in% colnames(object@snps)) ||
-                      length(object@alleles)!=2))
+           if(length(object@alleles) && (!all(object@alleles %in% colnames(object@snps)) ||
+                                         length(object@alleles)!=2))
              stop("alleles must specify a two columns of object@snps")
          })
 
@@ -34,9 +33,9 @@ setClass("aXSnpMatrix",
          ## should use contains=XSnpMatrix, but bug in snpStats prevents this
          contains="SnpMatrix",
          validity=function(object) {
-           if(!identical(rownames(object@snps),colnames(object@.Data)))
+           if(ncol(object@.Data) && !identical(rownames(object@snps),colnames(object@.Data)))
              stop("rownames of snps object must exactly match colnames of SnpMatrix object")
-           if(!identical(rownames(object@samples),rownames(object@.Data)))
+           if(nrow(object@.Data) && !identical(rownames(object@samples),rownames(object@.Data)))
              stop("rownames of samples object must exactly match rownames of SnpMatrix object")
            if(length(object@phenotype) && !(object@phenotype %in% colnames(object@samples)))
              stop("phenotype must specify a column name of object@samples")
