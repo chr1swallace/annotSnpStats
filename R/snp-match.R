@@ -43,6 +43,7 @@ snp.match <- function(x,y,col.x=0,col.y=0) {
   }
   m.x <- match(ids,id.x)
   m.y <- match(ids,id.y)
+  message(length(m.x)," matching SNPs found")
   return(list(x=m.x, y=m.y))
 }
 
@@ -71,10 +72,10 @@ sample.match <- function(x,y,col.x=0,col.y=0) {
   id.y <- sample.id(y,col.y)
   ids <- intersect(id.x,id.y)
   if(!length(ids)) {
-    message("no overlapping samples found")
+    message("no matching samples found")
     return(NULL)
   }
-  message(length(ids)," overlapping samples found")
+  message(length(ids)," matching samples found")
   m.x <- match(ids,id.x)
   m.y <- match(ids,id.y)
   return(list(x=m.x, y=m.y))
@@ -359,6 +360,11 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01,known.dups=NULL) {
   any.comp <- any(sw.class %in% c("comp","revcomp"))
   any.ambig <- any(sw.class=="ambig")
   sw <- sw.class %in% c("rev","revcomp")
+  if(length(wh <- which(sw.class=="impossible"))) {
+    message(length(wh)," impossible genotype calls found. These genotypes will be set to missing.")
+    sw[wh] <- NA
+  }
+  sw[sw.class=="impossible"] <- NA
   if(any.comp & any.ambig) { # there are reverse complements in the distinguishable cases
     ind <- which(sw.class=="ambig")
     message(length(ind)," SNPs have alleles not completely resolvable without strand information, confirming guess by checking allele freqs.")
@@ -369,9 +375,14 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01,known.dups=NULL) {
     sw2 <- ifelse(abs(x.cs[,"RAF"] - y.cs[,"RAF"]) < abs(1 - x.cs[,"RAF"] - y.cs[,"RAF"]), FALSE, TRUE)
     too.close <- abs(x.cs[,"MAF"]-0.5)<mafdiff
     if(any(too.close) & !is.null(known.dups)) {
-      message(length(ind)," using known dups to resolve ",sum(too.close)," cases close to 50% MAF.")
-      m1 <- match(known.dups[[1]],rownames(x))
-      m2 <- match(known.dups[[2]],rownames(y))
+      message(sum(too.close), "/", length(ind)," ambiguous SNPs close to 50% MAF.  Using known dups to resolve")
+      if(is.character(known.dups[,1])) {
+        m1 <- match(known.dups[,1],rownames(x))
+        m2 <- match(known.dups[,2],rownames(y))
+      } else {
+        m1 <- known.dups[,1]
+        m2 <- known.dups[,2]        
+      }
       if(length(wh <- which(duplicated(m1)))) {
         m1 <- m1[-wh]
         m2 <- m2[-wh]
@@ -380,13 +391,31 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01,known.dups=NULL) {
         m1 <- m1[-wh]
         m2 <- m2[-wh]
       } 
-      cor.asis <- sapply(which(too.close), function(i) cor(as(x[m1,ind[i]],"numeric"),
-                                                           as(y[m2,ind[i]],"numeric"),
-                                                           use="pair"))
+      
+      xn <- as(x[m1,ind[too.close]], "numeric")
+      yn <- as(y[m2,ind[too.close]], "numeric")
+      cor.asis <- sapply(seq_along(which(too.close)), function(i)
+                         cor(xn[,i], yn[,i], use="pair"))
+      
       cor.asis[ cor.asis > -0.8 & cor.asis < 0.8 ] <- NA # NA unless correlation is pretty strong
       sw2[too.close] <- cor.asis < 0
-    } else {
-      sw2[ too.close ] <- NA
+      too.close <- too.close[is.na(cor.asis)]
+    } 
+    
+    if(any(too.close)) {
+      can.match <- sw.class %in% c("comp","nochange","rev","revcomp")
+      xsw <- switch.alleles(x[,-ind],sw[-ind])
+      ysw <- y[,-ind]
+      ## step through too.close SNPs checking signed correlation
+      message("using signed correlation for ",sum(too.close)," SNPs too close to 50% MAF")
+      ldx <- ld(xsw,x[,ind[too.close],drop=FALSE], stats="R")
+      ldy <- ld(ysw,y[,ind[too.close],drop=FALSE], stats="R")
+      ldx[abs(ldx)<0.04] <- NA ## drop uncorrelated - have no information
+      ldy[abs(ldy)<0.04] <- NA ## drop uncorrelated - have no information
+      cor.sw <- sapply(1:ncol(ldx), function(j) cor(ldx[,j], ldy[,j], use="pair"))
+      cor.sw[ abs(cor.sw)<0.8 ] <- NA # NA unless correlation is pretty strong
+      sw2[too.close] <- cor.sw < 0
+      too.close <- too.close[is.na(cor.sw)]
     }
     message(sum(is.na(sw2))," SNPs not resolvable (MAF too close to 0.5).")
     sw[ind] <- sw2
