@@ -119,11 +119,12 @@ dups <- function(x,y,tol=ncol(x)/50,type=c("hethom","all"),stopatone=TRUE) {
                  all=0,
                  hethom=1)
   
-  pBar <- txtProgressBar( min = 0, max = nrow(x) - 1, style = 1 )
-  ret <- .Call("countdiffs", x@.Data, y@.Data, as.integer(max(tol,0)),
-               as.integer(type), as.integer(stopatone),pBar,               
+#  pBar <- txtProgressBar( min = 0, max = nrow(x) - 1, style = 1 )
+#  ret <- .Call("countdiffs", x@.Data, y@.Data, as.integer(max(tol,0)),
+  ret <- .Call("annotSnpStats_dups", x@.Data, y@.Data, as.integer(max(tol,0)),
+               as.integer(type), as.integer(stopatone), as.raw("00"), as.raw("02"),
                PACKAGE="annotSnpStats")
-  cat("\n") # end progress bar
+#  cat("\n") # end progress bar
   colnames(ret) <- c("index.x","index.y","mismatch","total")
   return(ret)
 }
@@ -309,7 +310,7 @@ g.class <- function(x,y) {
 ##' @export
 ##' @return  new annotSnpStats object derived from x, with alleles switched to match those in y
 ##' @author Chris Wallace
-align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01,known.dups=NULL) {
+align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.1,known.dups=NULL) {
   if(!identical(colnames(x), colnames(y)))
     stop("x and y should contain the same SNPs in the same order")
   if(any(is.na(x@snps[,alleles(x)])) || any(is.na(y@snps[,alleles(y)]))) {
@@ -400,7 +401,7 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01,known.dups=NULL) {
       cor.asis[ cor.asis > -0.8 & cor.asis < 0.8 ] <- NA # NA unless correlation is pretty strong
       sw2[too.close] <- cor.asis < 0
       too.close <- too.close[is.na(cor.asis)]
-    } 
+    }
     
     if(any(too.close)) {
       can.match <- sw.class %in% c("comp","nochange","rev","revcomp")
@@ -427,7 +428,7 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.01,known.dups=NULL) {
      ind <- which(sw.class=="ambig")
      sw2 <- x.alleles[ind]==g.rev(y.alleles[ind])
      sw[ind] <- sw2
-   } 
+  }
 
   if(any(is.na(sw)))
     x@.Data[,is.na(sw)] <- as.raw("00")

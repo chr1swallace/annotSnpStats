@@ -16,6 +16,8 @@ Asnps$a2 <- "B"
 Xsnps$a1 <- "A"
 Xsnps$a2 <- "B"
 
+blank <- new("aSnpMatrix")
+
 
 as11 <- new("aSnpMatrix",
             .Data=Autosomes[i1,j1],

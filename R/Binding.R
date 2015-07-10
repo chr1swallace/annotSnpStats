@@ -42,7 +42,9 @@ setMethod("rbind2",  ## bind samples
             if(any(!is.na(m))) {
               warning(sum(!is.na(m))," overlapping samples found - uniquifying sample names")
               new.ids <- make.unique(c(rownames(x)[!is.na(m)],rownames(y)[m[!is.na(m)]]))
-              rownames(y)[m[!is.na(m)]] <- new.ids[-c(1:sum(!is.na(m)))]
+              rn <- rownames(y)
+              rn[m[!is.na(m)]] <- new.ids[-c(1:sum(!is.na(m)))]
+              rownames(y) <- rn
             }
             new("aSnpMatrix",
                 .Data=rbind2(as(x,"SnpMatrix"),
@@ -51,7 +53,8 @@ setMethod("rbind2",  ## bind samples
                 samples=rbind(fix.factors(x@samples[,samples.colmatch,drop=FALSE]),
                   fix.factors(y@samples[,samples.colmatch,drop=FALSE])),
                 phenotype=x@phenotype,
-                alleles=x@alleles)})
+                alleles=x@alleles)
+          })
 
 alleles.update <- function(x,y,verbose=TRUE) {
   x.missing <- apply(is.na(x@snps[,alleles(x)]),1,any)

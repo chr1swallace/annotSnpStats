@@ -1,62 +1,120 @@
-#include <stdio.h>
-#include "Rinternals.h"
+#include <Rcpp.h>
+using namespace Rcpp;
 
 /* Chris Wallace <chris.wallace@cimr.cam.ac.uk> */
 /* GPL */
 
-/* SEXP countmatches(SEXP Rx, SEXP Ry) { */
-
-/*   int nprotect=0; */
-/*   SEXP Rdim, Rcounts, Rxx, Ryy; */
-
-/*   PROTECT(Rdim = getAttrib(Rx, R_DimSymbol)); */
-/*   nprotect++; */
-/*   int nx = INTEGER(Rdim)[0]; */
-/*   int mx = INTEGER(Rdim)[1]; */
-
-/*   PROTECT(Rdim = getAttrib(Ry, R_DimSymbol)); */
-/*   nprotect++; */
-/*   int ny = INTEGER(Rdim)[0]; */
-/*   int my = INTEGER(Rdim)[1]; */
-
-/*   if(mx != my) */
-/*     error("x and y need equal number of columns"); */
-
-/*   // pointers to x, y */
-/*   PROTECT(Rxx = coerceVector(Rx, INTEGER)); */
-/*   PROTECT(Ryy = coerceVector(Ry, INTEGER)); */
-/*   nprotect+=2; */
-/*   int *xx = CHAR(Rxx); */
-/*   int *yy = CHAR(Ryy); */
-
-/*   // return matrix */
-/*   PROTECT(Rcounts = allocMatrix(INTSXP, nx, ny)); */
-/*   nprotect++; */
-/*   int *counts = INTEGER(Rcounts); */
+// [[Rcpp::export]]
+IntegerMatrix dups (RawMatrix& X, RawMatrix& Y, IntegerVector maxDiff, IntegerVector Rtype, IntegerVector Rquick, RawVector& null, RawVector& het) {
   
-/*   int i=0, j=0, ii=0, jj=0, k=0; */
+   // allocate the matrix we will return
+  int nx = X.nrow();
+  int ny=Y.nrow();
+  int mx = X.ncol();
+  int my = Y.ncol();
+  if(mx != my)
+    Rcpp::stop("x and y need equal number of columns");
+  int MM = nx;
+  if(MM > nx)
+    MM = nx;
+  IntegerMatrix counts(MM,4);
+  //  Rcpp::RawVector missing = charToRaw("00");
+  //  Rcpp::RawVector het = charToRaw("02");
+  // maximum number of mismatches allowed
+  // std::string nullstr( "00" ) ;
+  // RawVector null( nullstr.size() ) ;
+  // std::copy( nullstr.begin(), nullstr.end(), null.begin() ) ;
+  // std::string hetstr( "02" ) ;
+  // RawVector het( hetstr.size() ) ;
+  // std::copy( hetstr.begin(), hetstr.end(), het.begin() ) ;
+  int maxdiff = maxDiff[0];
+  
+  // type of things to count 
+  int type = Rtype[0];
 
-/*   int ij=0; */
-/*   for(i=0; i<nx; i++) { // index rows of x */
-/*     for(j=0; j<ny; j++) { // index rows of y, ij indexes counts */
-/*       for(k=0, ii=i, jj=j; k<mx; k++, ii+=nx, jj+=ny) { // index elements of each row in x, y */
-/* 	/\* int xx=(int) x[ii]; *\/ */
-/* 	/\* int yy=(int) y[jj]; *\/ */
-/* 	if( xx[ii]!=0 && yy[jj]!=0 && xx[ii]==yy[jj] ) { */
-/* 	  //	  Rprintf("%d %d %d %d : [%d, %d] : %d == %d\n",i,j,k,ij,ii,jj,xx,yy); */
-/* 	  counts[ij]++; */
-/* 	} */
-/*       } */
-/*       // Rprintf("%d %d\n",ij,counts[ij]); */
-/*       ij++; */
-/*     } */
-/*   } */
-	
-/*   UNPROTECT(nprotect); */
-/*   return(Rcounts); */
+  // be quick by assuming <=1 match per sample
+  int quick = Rquick[0];
 
-/* } */
+  if(quick == 0)
+    MM=MM*4; // worst case: at maximum, each sample in x or y may have four matches in y or x
+  int xindex[MM], yindex[MM], mismatch[MM], total[MM];
+  
+  int i=0, j=0, ii=0, jj=0, k=0;
 
+  // record matches
+  int xflag[nx], yflag[ny];
+  for(i=0; i<nx; i++)
+    xflag[i]=0;
+  for(i=0; i<ny; i++)
+    yflag[i]=0;
+  
+  int ij=0;
+  for(i=0; i<nx; i++) { // index rows of x
+    Rcpp::checkUserInterrupt();
+
+    for(j=0; j<ny; j++) { // index rows of y, ij indexes counts
+      if(xflag[i]==1 || yflag[j]==1) // already matched
+	continue;
+      int nonzero = 0, different=0;
+      
+      for(k=0; k<mx; k++) {
+	if(X(i,k)!=null[0] && Y(j,k)!=null[0]) {
+	  nonzero++;		
+   	  if((type==0 && X(i,k)!=Y(j,k)) || 
+	     (type==1 && X(i,k)==het[0] && Y(j,k)!=het[0]) || 
+	     (type==1 && X(i,k)!=het[0] && Y(j,k)==het[0])) {
+  	    different++;
+	  }
+	  if(different == maxdiff)
+	    break;
+	}
+      }
+      //      fprintf(stderr, "i:%i  j:%i, ij:%i, diff:%i\n", i, j, ij, different);
+
+      if(different == maxdiff) // different samples
+	continue;
+
+      // low mismatch - store
+      counts(ij,0) = i;
+      counts(ij,1) = j;
+      counts(ij,2) = different;
+      counts(ij,3) = nonzero;
+      if(quick==1) {
+	xflag[i] = 1;
+	yflag[j] = 1;
+      }
+      ij++;
+    }
+    // *rPercentComplete = i; //this value increments
+    // eval(lang4(install("setTxtProgressBar"), pBar, percentComplete, R_NilValue), utilsPackage);
+  }
+
+  // trim Rcount
+  IntegerMatrix Rcounts(ij,counts.ncol());
+  for(i=0; i<ij; i++) 
+    for(j=0; j<counts.ncol(); j++)
+      Rcounts(i,j) = counts(i,j);
+
+  return(Rcounts);
+
+}
+
+
+/*
+   
+  
+
+src <- '
++     Rcpp::NumericMatrix Am(A);
++     int nrows = Am.nrow();
++     int ncolumns = Am.ncol();
++     for (int i = 0; i < ncolumns; i++) {
++         for (int j = 1; j < nrows; j++) {
++             Am(j,i) = Am(j,i) + Am(j-1,i);
++         }
++     }
++     return Am;
++ '
 SEXP countdiffs(SEXP Rx, SEXP Ry, SEXP maxDiff, SEXP Rtype, SEXP Rquick, SEXP pBar) {
 
   int nprotect=0;
@@ -167,53 +225,4 @@ SEXP countdiffs(SEXP Rx, SEXP Ry, SEXP maxDiff, SEXP Rtype, SEXP Rquick, SEXP pB
   return(Rcounts);
 
 }
-
-
-/* SEXP countmatches(SEXP x, SEXP y, SEXP maxDiff) { */
-
-/*   int nprotect=0; */
-
-/*   PROTECT(SEXP Rdim = getAttrib(x, R_DimSymbol)); */
-/*   nprotect++; */
-/*   int nx = INTEGER(Rdim)[0]; */
-/*   int mx = INTEGER(Rdim)[1]; */
-
-/*   PROTECT(SEXP Rdim = getAttrib(y, R_DimSymbol)); */
-/*   nprotect++; */
-/*   int ny = INTEGER(Rdim)[0]; */
-/*   int my = INTEGER(Rdim)[1]; */
-
-/*   if(mx != my) */
-/*     error("x and y need equal number of columns"); */
-
-/*   int maxdiff = INTEGER(maxDiff)[0]; */
-
-/*   // return matrix */
-/*   PROTECT(Rcounts = allocMatrix(INTSXP, nx * ny)); */
-/*   nprotect++; */
-/*   counts = INTEGER(Rcounts); */
-  
-/*   int i=0, j=0, ii=0, jj=0, k=0; */
-
-/*   int ij=0; */
-/*   for(i=0; i<nx; i++) { // index rows of x */
-/*     for(j=0; j<ny; j++) { // index rows of y, ij indexes counts */
-/*       for(k=0, ii=i, jj=j; k<mx; k++, ii+=nx, jj+=ny) { // index elements of each row in x, y */
-/* 	int xx=(int) x[ii]; */
-/* 	int yy=(int) y[jj]; */
-/* 	if( xx!=0 && yy!=0 && xx!=yy ) { */
-/* 	  //	  Rprintf("%d %d %d %d : [%d, %d] : %d == %d\n",i,j,k,ij,ii,jj,xx,yy); */
-/* 	  counts[ij]++; */
-/* 	  if(counts[ij]==maxdiff) */
-/* 	    break; */
-/* 	} */
-/*       } */
-/*       // Rprintf("%d %d\n",ij,counts[ij]); */
-/*       ij++; */
-/*     } */
-/*   } */
-	
-/*   UNPROTECT(nprotect); */
-/*   return(Rcounts); */
-    
-/* } */
+*/

@@ -7,4 +7,5 @@
 #' @seealso \code{\link[snpStats:snpStats-package]{snpStats}}
 #' @import snpStats
 #' @import methods
+#' @importFrom Rcpp sourceCpp
 NULL

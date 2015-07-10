@@ -2,11 +2,13 @@ Package: annotSnpStats
 Title: Annotated SnpMatrix objects
 Description: Simple class to allow SnpMatrix objects to be manipulated together
     with snp annotation files
-Version: 1.0
+Version: 1.1
 Authors@R: c(person("Chris", "Wallace", role=c("aut","cre"), email =
     "cew54@cam.ac.uk"))
 Imports:
-    methods
+    methods,
+    Rcpp
+LinkingTo: Rcpp
 Depends:
     snpStats
 Suggests:
