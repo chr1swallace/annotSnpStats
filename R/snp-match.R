@@ -362,7 +362,7 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.1,known.dups=NULL) {
   any.ambig <- any(sw.class=="ambig")
   sw <- sw.class %in% c("rev","revcomp")
   if(length(wh <- which(sw.class=="impossible"))) {
-    message(length(wh)," impossible genotype calls found. These genotypes will be set to missing.")
+    message(length(wh)," pairwise impossible allele labels found. These genotypes will be set to missing.")
     sw[wh] <- NA
   }
   sw[sw.class=="impossible"] <- NA

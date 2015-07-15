@@ -75,8 +75,8 @@ IntegerMatrix dups (RawMatrix& X, RawMatrix& Y, IntegerVector maxDiff, IntegerVe
 	continue;
 
       // low mismatch - store
-      counts(ij,0) = i;
-      counts(ij,1) = j;
+      counts(ij,0) = i + 1; // switch to 1-based
+      counts(ij,1) = j + 1; // switch to 1-based
       counts(ij,2) = different;
       counts(ij,3) = nonzero;
       if(quick==1) {
