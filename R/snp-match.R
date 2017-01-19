@@ -403,9 +403,9 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.1,known.dups=NULL) {
       too.close <- too.close[is.na(cor.asis)]
     }
     
-    if(any(too.close)) {
+    if(any(too.close) & is.null(known.dups)) {
       can.match <- sw.class %in% c("comp","nochange","rev","revcomp")
-      xsw <- switch.alleles(x[,-ind],sw[-ind])
+      xsw <- switch.alleles(x[,-ind],which(sw[-ind]))
       ysw <- y[,-ind]
       ## step through too.close SNPs checking signed correlation
       message("using signed correlation for ",sum(too.close)," SNPs too close to 50% MAF")
