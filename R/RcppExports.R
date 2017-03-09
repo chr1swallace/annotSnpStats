@@ -5,3 +5,7 @@ dups <- function(X, Y, maxDiff, Rtype, Rquick, null, het) {
     .Call('annotSnpStats_dups', PACKAGE = 'annotSnpStats', X, Y, maxDiff, Rtype, Rquick, null, het)
 }
 
+asw <- function(x, w) {
+    .Call('annotSnpStats_asw', PACKAGE = 'annotSnpStats', x, w)
+}
+

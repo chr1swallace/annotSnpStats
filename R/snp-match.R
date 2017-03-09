@@ -287,14 +287,19 @@ g.class <- function(x,y) {
 ##' @title align.alleles
 ##' @param x annotSnpStats object
 ##' @param y annotSnpStats object
-##' @param do.plot if TRUE (default), generate a summary plot that can be a useful visual check nothing has gone wrong.  The points should lie close to the line of equality.
+##' @param do.plot if TRUE (default), generate a summary plot that can
+##'     be a useful visual check nothing has gone wrong.  The points
+##'     should lie close to the line of equality.
 ##' @param mafdiff SNPs with MAF within mafdiff of 0.5 will not be
-##' aligned automatically.  This is of concern only for T/A and C/G
-##' SNPs, which are not uniquely resolveable by allele codes.
+##'     aligned automatically.  This is of concern only for T/A and
+##'     C/G SNPs, which are not uniquely resolveable by allele codes.
 ##' @param known.dups if duplicate samples exist, supply a list
-##' returned by running dups(x,y).  The alignment of genotypes in
-##' these duplicate samples will be used to inform alignment of
-##' genotypes in other samples.
+##'     returned by running dups(x,y).  The alignment of genotypes in
+##'     these duplicate samples will be used to inform alignment of
+##'     genotypes in other samples.
+##' @param return.sw if TRUE, don't do the switch, just return index
+##'     of switches.  NA means indeterminable, data should be set to
+##'     missing.
 ##' @examples
 ##' x <- example.data(1:100,1:10)
 ##' y <- example.data(101:200,1:10)
@@ -310,7 +315,7 @@ g.class <- function(x,y) {
 ##' @export
 ##' @return  new annotSnpStats object derived from x, with alleles switched to match those in y
 ##' @author Chris Wallace
-align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.1,known.dups=NULL) {
+align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.1,known.dups=NULL,return.sw=FALSE) {
   if(!identical(colnames(x), colnames(y)))
     stop("x and y should contain the same SNPs in the same order")
   if(any(is.na(x@snps[,alleles(x)])) || any(is.na(y@snps[,alleles(y)]))) {
@@ -430,11 +435,17 @@ align.alleles <- function(x,y,do.plot=TRUE,mafdiff=0.1,known.dups=NULL) {
      sw[ind] <- sw2
   }
 
+  if(return.sw)
+      return(sw)
+
+  ## do switch
   if(any(is.na(sw)))
     x@.Data[,is.na(sw)] <- as.raw("00")
   if(length(wh <- which(sw))) {
-    x <- switch.alleles(x, wh)
-    x@snps[wh, alleles(x) ] <- y@snps[wh, alleles(y)]
+      xsw <- asw(x@.Data,wh)
+      x@.Data=xsw
+      ##x <- switch.alleles(x, wh)
+      x@snps[wh, alleles(x) ] <- y@snps[wh, alleles(y)]
   }
 
   if(do.plot) {
