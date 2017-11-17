@@ -9,3 +9,6 @@
 #' @import methods
 #' @importFrom Rcpp sourceCpp
 NULL
+
+# failed attempted to get devtools happy
+# #' @importClassesFrom Matrix mMatrix

@@ -10,7 +10,9 @@ Imports:
     Rcpp
 LinkingTo: Rcpp
 Depends:
+    Matrix,
     snpStats
 Suggests:
     testthat
 License: GPL
+RoxygenNote: 6.0.1

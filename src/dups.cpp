@@ -1,11 +1,107 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-/* Chris Wallace <chris.wallace@cimr.cam.ac.uk> */
+/* Chris Wallace <cew54@cam.ac.uk> */
 /* GPL */
 
 // [[Rcpp::export]]
-IntegerMatrix dups (RawMatrix& X, RawMatrix& Y, IntegerVector maxDiff, IntegerVector Rtype, IntegerVector Rquick, RawVector& null, RawVector& het) {
+IntegerMatrix cdupsw (RawMatrix& X, IntegerVector maxDiff, IntegerVector Rtype, IntegerVector Rquick, RawVector& null, RawVector& het) {
+  
+   // allocate the matrix we will return
+  int nx = X.nrow();
+  int mx = X.ncol();
+  int MM = nx;
+  IntegerMatrix counts(MM,4);
+  //  Rcpp::RawVector missing = charToRaw("00");
+  //  Rcpp::RawVector het = charToRaw("02");
+  // maximum number of mismatches allowed
+  // std::string nullstr( "00" ) ;
+  // RawVector null( nullstr.size() ) ;
+  // std::copy( nullstr.begin(), nullstr.end(), null.begin() ) ;
+  // std::string hetstr( "02" ) ;
+  // RawVector het( hetstr.size() ) ;
+  // std::copy( hetstr.begin(), hetstr.end(), het.begin() ) ;
+  int maxdiff = maxDiff[0];
+  float maxrat = (float)maxdiff / (float)mx;
+  
+  // type of things to count 
+  int type = Rtype[0];
+
+  // be quick by assuming <=1 match per sample
+  int quick = Rquick[0];
+
+  if(quick == 0)
+    MM=MM*4; // worst case: at maximum, each sample in x may have four matches 
+  int xindex[MM], yindex[MM], mismatch[MM], total[MM];
+  
+  int i=0, j=0, ii=0, jj=0, k=0;
+
+  // record matches
+  int xflag[nx];
+  for(i=0; i<nx; i++)
+    xflag[i]=0;
+  
+  int ij=0;
+  for(i=0; i<nx-1; i++) { // index rows of x
+    Rcpp::checkUserInterrupt();
+
+    for(j=i+1; j<nx; j++) { // index rows of x, ij indexes counts
+      if(xflag[i]==1 || xflag[j]==1) // already matched
+	continue;
+      int nonzero = 0, different=0;
+      int mismatch=1;
+      
+      for(k=0; k<mx; k++) {
+	if(X(i,k)!=null[0] && X(j,k)!=null[0]) {
+	  nonzero++;		
+   	  if((type==0 && X(i,k)!=X(j,k)) || 
+	     (type==1 && X(i,k)==het[0] && X(j,k)!=het[0]) || 
+	     (type==1 && X(i,k)!=het[0] && X(j,k)==het[0])) {
+  	    different++;
+	  }
+	  if(different == maxdiff)  { // break because we counted maxdiff mismatches
+	    mismatch=0;
+	    break;
+	  }
+	  if(k>1000 && (float)different/(float)k > maxrat) { // break because at 1000 SNPs we are already 3 * above of maxdiff/mx mismatches
+	    mismatch=0;
+	    break;
+	  }
+	}
+      }
+      // fprintf(stderr, "i:%i  j:%i, ij:%i, diff:%i\n", i, j, ij, different);
+
+      if(mismatch==0 ) // no match for samples i & j
+	continue;
+
+      // low mismatch - store
+      counts(ij,0) = i + 1; // switch to 1-based
+      counts(ij,1) = j + 1; // switch to 1-based
+      counts(ij,2) = different;
+      counts(ij,3) = nonzero;
+      if(quick==1) {
+	xflag[i] = 1;
+	xflag[j] = 1;
+      }
+      ij++;
+    }
+    // *rPercentComplete = i; //this value increments
+    // eval(lang4(install("setTxtProgressBar"), pBar, percentComplete, R_NilValue), utilsPackage);
+  }
+
+  // trim Rcount
+  IntegerMatrix Rcounts(ij,counts.ncol());
+  for(i=0; i<ij; i++) 
+    for(j=0; j<counts.ncol(); j++)
+      Rcounts(i,j) = counts(i,j);
+
+  return(Rcounts);
+
+}
+
+
+// [[Rcpp::export]]
+IntegerMatrix cdups (RawMatrix& X, RawMatrix& Y, IntegerVector maxDiff, IntegerVector Rtype, IntegerVector Rquick, RawVector& null, RawVector& het) {
   
    // allocate the matrix we will return
   int nx = X.nrow();

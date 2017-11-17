@@ -112,20 +112,28 @@ sample.match <- function(x,y,col.x=0,col.y=0) {
 ##' dups(x,y)
 ##' @author Chris Wallace
 ##' @export
-dups <- function(x,y,tol=ncol(x)/50,type=c("hethom","all"),stopatone=TRUE) {
-  if(!identical(colnames(x), colnames(y)))
-    stop("x and y need identical snps or sample comparison will be meaningless")
+dups <- function(x,y=NULL,tol=ncol(x)/50,type=c("hethom","all"),stopatone=TRUE) {
   type <- switch(match.arg(type),
                  all=0,
                  hethom=1)
+  tol <- ceiling(tol) # C code uses ==
+  if(is.null(y)) {
+      ret <- cdupsw(x@.Data, as.integer(max(tol,0)),
+                   as.integer(type), as.integer(stopatone), as.raw("00"), as.raw("02"))
+  } else {
+    if(!identical(colnames(x), colnames(y)))
+    stop("x and y need identical snps or sample comparison will be meaningless")
   
 #  pBar <- txtProgressBar( min = 0, max = nrow(x) - 1, style = 1 )
 #  ret <- .Call("countdiffs", x@.Data, y@.Data, as.integer(max(tol,0)),
-  ret <- .Call("annotSnpStats_dups", x@.Data, y@.Data, as.integer(max(tol,0)),
-               as.integer(type), as.integer(stopatone), as.raw("00"), as.raw("02"),
-               PACKAGE="annotSnpStats")
-#  cat("\n") # end progress bar
-  colnames(ret) <- c("index.x","index.y","mismatch","total")
+  ret <- cdups(x@.Data, y@.Data, as.integer(max(tol,0)),
+               as.integer(type), as.integer(stopatone), as.raw("00"), as.raw("02"))
+  ## ret <- .Call("annotSnpStats_dups", x@.Data, y@.Data, as.integer(max(tol,0)),
+  ##              as.integer(type), as.integer(stopatone), as.raw("00"), as.raw("02"),
+  ##              PACKAGE="annotSnpStats")
+                                        #  cat("\n") # end progress bar
+  }
+  colnames(ret) <- c("index.1","index.2","mismatch","total")
   return(ret)
 }
   

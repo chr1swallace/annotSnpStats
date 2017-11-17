@@ -5,9 +5,25 @@
 
 using namespace Rcpp;
 
-// dups
-IntegerMatrix dups(RawMatrix& X, RawMatrix& Y, IntegerVector maxDiff, IntegerVector Rtype, IntegerVector Rquick, RawVector& null, RawVector& het);
-RcppExport SEXP annotSnpStats_dups(SEXP XSEXP, SEXP YSEXP, SEXP maxDiffSEXP, SEXP RtypeSEXP, SEXP RquickSEXP, SEXP nullSEXP, SEXP hetSEXP) {
+// cdupsw
+IntegerMatrix cdupsw(RawMatrix& X, IntegerVector maxDiff, IntegerVector Rtype, IntegerVector Rquick, RawVector& null, RawVector& het);
+RcppExport SEXP _annotSnpStats_cdupsw(SEXP XSEXP, SEXP maxDiffSEXP, SEXP RtypeSEXP, SEXP RquickSEXP, SEXP nullSEXP, SEXP hetSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RawMatrix& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type maxDiff(maxDiffSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type Rtype(RtypeSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type Rquick(RquickSEXP);
+    Rcpp::traits::input_parameter< RawVector& >::type null(nullSEXP);
+    Rcpp::traits::input_parameter< RawVector& >::type het(hetSEXP);
+    rcpp_result_gen = Rcpp::wrap(cdupsw(X, maxDiff, Rtype, Rquick, null, het));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cdups
+IntegerMatrix cdups(RawMatrix& X, RawMatrix& Y, IntegerVector maxDiff, IntegerVector Rtype, IntegerVector Rquick, RawVector& null, RawVector& het);
+RcppExport SEXP _annotSnpStats_cdups(SEXP XSEXP, SEXP YSEXP, SEXP maxDiffSEXP, SEXP RtypeSEXP, SEXP RquickSEXP, SEXP nullSEXP, SEXP hetSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -18,13 +34,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type Rquick(RquickSEXP);
     Rcpp::traits::input_parameter< RawVector& >::type null(nullSEXP);
     Rcpp::traits::input_parameter< RawVector& >::type het(hetSEXP);
-    rcpp_result_gen = Rcpp::wrap(dups(X, Y, maxDiff, Rtype, Rquick, null, het));
+    rcpp_result_gen = Rcpp::wrap(cdups(X, Y, maxDiff, Rtype, Rquick, null, het));
     return rcpp_result_gen;
 END_RCPP
 }
 // asw
 RawMatrix asw(RawMatrix x, NumericVector w);
-RcppExport SEXP annotSnpStats_asw(SEXP xSEXP, SEXP wSEXP) {
+RcppExport SEXP _annotSnpStats_asw(SEXP xSEXP, SEXP wSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -33,4 +49,16 @@ BEGIN_RCPP
     rcpp_result_gen = Rcpp::wrap(asw(x, w));
     return rcpp_result_gen;
 END_RCPP
+}
+
+static const R_CallMethodDef CallEntries[] = {
+    {"_annotSnpStats_cdupsw", (DL_FUNC) &_annotSnpStats_cdupsw, 6},
+    {"_annotSnpStats_cdups", (DL_FUNC) &_annotSnpStats_cdups, 7},
+    {"_annotSnpStats_asw", (DL_FUNC) &_annotSnpStats_asw, 2},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_annotSnpStats(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
 }
