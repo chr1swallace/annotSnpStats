@@ -84,7 +84,7 @@ setGeneric("snps",
 ##' @export
 ##' @rdname accessors
 setGeneric("snps<-",
-           def=function(onject,value) {
+           def=function(object,value) {
                if(!is.data.frame(value))
                    stop("snps must be a data.frame")
                object@snps <- value
