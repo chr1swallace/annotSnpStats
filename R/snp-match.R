@@ -208,11 +208,12 @@ snp.qc <- function(x, thr=c(Call.rate=">0.99", MAF=">0.03", z.HWE="<5")) {
 ##' @examples
 ##' g.complement(c("A/G","A/T"))
 g.complement <- function(x) {
-  x <- toupper(x)
-  switches <- c("A"="t","T"="a","C"="g","G"="c")
-  for(i in seq_along(switches))
-    x <- sub(names(switches)[i],switches[i],x)
-  toupper(x)
+    chartr("ATCG","TAGC",toupper(x))
+  ## x <- toupper(x)
+  ## switches <- c("A"="t","T"="a","C"="g","G"="c")
+  ## for(i in seq_along(switches))
+  ##   x <- sub(names(switches)[i],switches[i],x)
+  ## toupper(x)
 }
 
 ##' Reverse alleles in a genotype
@@ -226,7 +227,9 @@ g.complement <- function(x) {
 ##' @examples
 ##' g.rev(c("A/G","A/T"))
 g.rev <- function(x,sep="/") {
-  sapply(strsplit(x,sep),function(g) paste(rev(g),collapse="/"))
+    tmp=tstrsplit(x,sep)
+    paste(tmp[[2]],tmp[[1]],sep=sep) 
+  ## sapply(strsplit(x,sep),function(g) paste(rev(g),collapse="/"))
 }
 ##' count specific genotypes
 ##'
