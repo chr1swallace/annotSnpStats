@@ -1,8 +1,9 @@
 Package: annotSnpStats
 Title: Annotated SnpMatrix objects
 Description: Simple class to allow SnpMatrix objects to be manipulated together
-    with snp annotation files
-Version: 1.1
+    with snp annotation files.  Also functions focused on joining snpMatrices
+    from different samples/SNPs, including for allele alignment.
+Version: 0.99
 Authors@R: c(person("Chris", "Wallace", role=c("aut","cre"), email =
     "cew54@cam.ac.uk"))
 Imports:
@@ -10,9 +11,8 @@ Imports:
     Rcpp
 LinkingTo: Rcpp
 Depends:
-    Matrix,
     snpStats
 Suggests:
     testthat
 License: GPL
-RoxygenNote: 6.0.1
+RoxygenNote: 6.0.1.9000

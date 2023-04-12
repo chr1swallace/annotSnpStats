@@ -2,13 +2,24 @@
 #'
 #' SnpMatrix or XSnpMatrix objects, tied to sample and SNP support objects
 #'
-#' This is a small class to allow subsetting and binding operations to be applied to SnpMatrix objects together with their SNP and sample support objects in single operations.  It means the different objects are assured to always line up.
+#' This is a small class to allow subsetting and binding operations to
+#' be applied to SnpMatrix objects together with their SNP and sample
+#' support objects in single operations.  It means the different
+#' objects are assured to always line up.
 #'
 #'@slot .Data \code{SnpMatrix} or \code{XSnpMatrix} object
-#'@slot snps \code{data.frame} with rownames matching colnames of \code{.Data}
-#'@slot samples \code{data.frame} with rownames matching rownames of \code{.Data}
-#'@slot diploid logical vector of length == \code{ncol{.Data}}, TRUE indicates sample from a diploid individual
-#'
+#'@slot snps \code{data.frame} with rownames matching colnames of
+#'     \code{.Data}
+#'@slot samples \code{data.frame} with rownames matching rownames of
+#'     \code{.Data}
+#'@slot phenotype character giving the column name in samples
+#'     representing phenotype
+#'@slot alleles character vector of length 2 giving the column names
+#'     in snps representing phenotype
+#'@slot diploid for aXSnpMatrix logical vector indicating which
+#'     samples are from diploid individuals
+#' @name aSnpMatrix
+#' @rdname aSnpMatrix-class
 #' @exportClass aSnpMatrix
 #' @author Chris Wallace
 setClass("aSnpMatrix",
@@ -26,8 +37,8 @@ setClass("aSnpMatrix",
              stop("alleles must specify a two columns of object@snps")
          })
 
-#' @rdname aSnpMatrix-class
-#' @exportClass aXSnpMatrix
+#' @rdname aXSnpMatrix-class
+#' @export
 setClass("aXSnpMatrix",
          representation(snps="data.frame",samples="data.frame",phenotype="character",alleles="character",dipload="logical"),
          ## should use contains=XSnpMatrix, but bug in snpStats prevents this

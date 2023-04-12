@@ -8,7 +8,9 @@
 #' @import snpStats
 #' @import methods
 #' @importFrom Rcpp sourceCpp
+#' @importFrom graphics abline
+#' @importFrom stats cor
+#' @importFrom utils data
 NULL
 
 # failed attempted to get devtools happy
-# #' @importClassesFrom Matrix mMatrix

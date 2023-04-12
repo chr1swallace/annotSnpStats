@@ -4,7 +4,8 @@
 \alias{dups}
 \title{Find duplicate samples}
 \usage{
-dups(x, y, tol = ncol(x)/50, type = c("hethom", "all"), stopatone = TRUE)
+dups(x, y = NULL, tol = ncol(x)/50, type = c("hethom", "all"),
+  stopatone = TRUE)
 }
 \arguments{
 \item{x}{aSnpStats object}

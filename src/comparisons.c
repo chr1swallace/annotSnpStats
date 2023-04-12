@@ -137,7 +137,7 @@ SEXP countdiffs(SEXP Rx, SEXP Ry, SEXP maxDiff, SEXP Rtype, SEXP Rquick, SEXP pB
 	continue;
 
       // low mismatch - store
-      fprintf(stderr, "i:%i  j:%i, ij:%i\n", i, j, ij);
+      /* fprintf(stderr, "i:%i  j:%i, ij:%i\n", i, j, ij); */
       xindex[ij] = i+1; // switch to 1-based
       yindex[ij] = j+1; // switch to 1-based
       mismatch[ij] = different;

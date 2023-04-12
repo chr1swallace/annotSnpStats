@@ -78,16 +78,16 @@ setGeneric("phenotype<-",
 ##' @details \code{snps()} extracts the snps \code{data.frame} from an
 ##' object of class aSnpMatrix
 setGeneric("snps",
-           def=function(object) {
-             return(object@snps)
+           def=function(x) {
+             return(x@snps)
            })
 ##' @export
 ##' @rdname accessors
 setGeneric("snps<-",
-           def=function(object,value) {
+           def=function(x,value) {
                if(!is.data.frame(value))
                    stop("snps must be a data.frame")
-               object@snps <- value
+               x@snps <- value
                return(object)
            })
 ##' @export

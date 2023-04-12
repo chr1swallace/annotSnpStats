@@ -20,9 +20,9 @@ phenotype(x)
 
 phenotype(x) <- value
 
-snps(object)
+snps(x)
 
-snps(onject) <- value
+snps(x) <- value
 
 samples(x)
 

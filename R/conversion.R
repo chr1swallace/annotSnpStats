@@ -24,10 +24,11 @@ annot.plink <- function(obj) {
 ##' @return aSnpMatrix object
 ##' @author Chris Wallace
 ##' @export
-annot.read.plink <- function(filestub) {
+annot.read.plink <- function(filestub,...) {
   obj <- read.plink(fam=sprintf("%s.fam",filestub),
-                       bed=sprintf("%s.bed",filestub),
-                       bim=sprintf("%s.bim",filestub))
+                    bed=sprintf("%s.bed",filestub),
+                    bim=sprintf("%s.bim",filestub),
+                    ...)
   new("aSnpMatrix",
       .Data=obj$genotypes,
       snps=obj$map,
